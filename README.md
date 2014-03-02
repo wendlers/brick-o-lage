@@ -12,8 +12,8 @@ functionality like driving LEDs, detecting button presses, control DC motors or 
 and so on. This "smart" bricks (or "slave" bricks) are then connected to a "master" brick which allows 
 to organize the functionality of the "smart" bricks into a more complex system. 
 
-This project aims to provide the plans for the hardware (like schmatics and  PCBs), als well as the 
-firmware for both, the "slace" bricks and the "master" brick.
+This project aims to provide the plans for the hardware (like schmatics, PCBs and STL for 3D printing), 
+als well as the firmware for both, the "slace" bricks and the "master" brick.
 
 Currently the following bricks are planned
 

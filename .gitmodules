@@ -1,3 +1,6 @@
 [submodule "carambola"]
 	path = carambola
 	url = https://github.com/8devices/carambola
+[submodule "libemb"]
+	path = libemb
+	url = git@github.com:wendlers/libemb.git

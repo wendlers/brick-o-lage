@@ -157,11 +157,10 @@ int main(void)
     P1OUT &= ~BIT0;
 
     P1DIR &= ~BIT3;                                // Set P2.0 to input  direction
-    P1OUT |=  BIT3;                  			   // setting out to LOW enables pull-down                     
-//    P2OUT &= ~BIT0;                  			   // setting out to LOW enables pull-down                     
+    P1OUT |=  BIT3;                  			   // setting out to HIGH enables pull-up               
     P1REN |=  BIT3;                  			   // enable pull-up/down 
 
-	P2DIR = BIT4 + BIT5 + BIT0;    			   // The two status LEDs				
+	P2DIR = BIT4 + BIT5 + BIT0;    			       // The two status LEDs				
 	P2OUT = BIT5;								   // turn one of the LEDs on 
 
     TI_USCI_I2C_slaveinit(start_cb, transmit_cb, receive_cb, 0x48);

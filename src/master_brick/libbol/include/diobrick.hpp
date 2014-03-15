@@ -29,13 +29,17 @@ class DioBrick : public Brick
 private:
 	unsigned char pout;
 
-public:
+	DioBrick(Brick *brick);
 
-	DioBrick(BrickBus *bus, int slaveAddress);
+	virtual ~DioBrick();
+
+public:
 
 	void writeOut(BrickPin pin, BrickLogVal value);
 
 	BrickLogVal readIn(BrickPin pin);	
+
+	friend class BrickBus;
 };
 
 }

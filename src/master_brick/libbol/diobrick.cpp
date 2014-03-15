@@ -26,9 +26,13 @@
 #define CMD_SET_POUT    0x01
 #define CMD_GET_PIN     0x02
 
-bol::DioBrick::DioBrick(bol::BrickBus *bus, int slaveAddress) : bol::Brick(bus, slaveAddress)
+bol::DioBrick::DioBrick(Brick *brick) : bol::Brick(brick)
 {
 	pout = 0x00;
+}
+
+bol::DioBrick::~DioBrick()
+{
 }
 
 void bol::DioBrick::writeOut(bol::BrickPin pin, bol::BrickLogVal value)
@@ -41,12 +45,12 @@ void bol::DioBrick::writeOut(bol::BrickPin pin, bol::BrickLogVal value)
 	}
 
 	std::vector<unsigned char> msg1 = {CMD_SET_POUT, pout};
-	mbus->write(address, msg1);
+	bbus->write(address, msg1);
 }
 
 bol::BrickLogVal bol::DioBrick::readIn(bol::BrickPin pin)	
 {
-	std::vector<unsigned char> res = mbus->read(address, CMD_GET_PIN, 1);
+	std::vector<unsigned char> res = bbus->read(address, CMD_GET_PIN, 1);
 
 	if(res[0] & (unsigned char)pin) {
 		return bol::BrickLogVal::HIGH;

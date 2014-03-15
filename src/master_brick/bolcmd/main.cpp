@@ -30,36 +30,43 @@ int main(void)
 
 	try
 	{
+		// get brick bus instance
 		BrickBus bb; 
-		DioBrick db(&bb, 0x48);
+
+		// ask for DIO brick on address 0x48
+		// if no brick at 0x48 or brick of different type, exception is thrown 
+		DioBrick *b = (DioBrick *)bb.getBrickByAddress(0x48, BrickType::DIO);
 
 		// reset MCU
 		cout << "Performe MCU reset" << endl;
-		db.reset();
+		b->reset();
 
 		// read HW type
-		cout << "Type = " << (int)(db.getType()) << endl;
+		cout << "Type = " << (int)(b->getType()) << endl;
 		
 		// read FW version
-		cout << "FW-Version = " << (int)(db.getFirmwareVersion()) << endl;
+		cout << "FW-Version = " << (int)(b->getFirmwareVersion()) << endl;
 	
-		db.writeOut(BrickPin::P1, BrickLogVal::HIGH);
-		db.writeOut(BrickPin::P2, BrickLogVal::HIGH);
-		db.writeOut(BrickPin::P3, BrickLogVal::HIGH);
-		db.writeOut(BrickPin::P4, BrickLogVal::HIGH);
+		// switch all outputs on
+		b->writeOut(BrickPin::P1, BrickLogVal::HIGH);
+		b->writeOut(BrickPin::P2, BrickLogVal::HIGH);
+		b->writeOut(BrickPin::P3, BrickLogVal::HIGH);
+		b->writeOut(BrickPin::P4, BrickLogVal::HIGH);
 
+		// map state of input to output for ever
 		while(1) 
 		{
 			// copy state of input to output
 			for(int pin = 0; pin < 4; pin++)
 			{			
-				db.writeOut(static_cast<BrickPin>(1 << pin), db.readIn(static_cast<BrickPin>(1 << pin)));
+				b->writeOut(static_cast<BrickPin>(1 << pin), b->readIn(static_cast<BrickPin>(1 << pin)));
 			}
 		}
 	}
 	catch (exception& e)
 	{
-		cerr << "exception caught: " << e.what() << '\n';
+		cerr << "exception caught: " << e.what() << endl;
+		return 1;
 	}
 
 	return 0;

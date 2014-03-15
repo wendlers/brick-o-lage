@@ -25,10 +25,18 @@
 
 bol::Brick::Brick(bol::BrickBus *bus, int slaveAddress)
 {
-	mbus = bus;
+	bbus = bus;
 
 	address = slaveAddress;
 }
+
+bol::Brick::Brick(bol::Brick *brick)
+{
+	bbus = brick->bbus;
+
+	address = brick->address;
+}
+
 
 bol::Brick::~Brick()
 {
@@ -36,7 +44,7 @@ bol::Brick::~Brick()
 
 bol::BrickType bol::Brick::getType()
 {
-	std::vector<unsigned char> res = mbus->read(address, CMD_FW_TYPE, 1);
+	std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
 
 	switch(res[0]) {
 		case 0x01: return bol::BrickType::DIO;
@@ -47,7 +55,7 @@ bol::BrickType bol::Brick::getType()
 
 unsigned char bol::Brick::getFirmwareVersion() 
 {
-	std::vector<unsigned char> res = mbus->read(address, CMD_FW_VERSION, 1);
+	std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
 
 	return res[0];
 }
@@ -55,6 +63,6 @@ unsigned char bol::Brick::getFirmwareVersion()
 void bol::Brick::reset()
 {
 	std::vector<unsigned char> msg = {CMD_RESET};
-	mbus->write(address, msg);
+	bbus->write(address, msg);
 }
 

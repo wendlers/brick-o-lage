@@ -29,7 +29,11 @@ namespace bol {
 enum class BrickType 
 { 
 	UNKNOWN = 0x00,
-	DIO = 0x01,
+	DIO 	= 0x01,
+	DCM 	= 0x02,
+	SER 	= 0x03,
+	SEN 	= 0x04,
+	ANY 	= 0xFF,
 };
 
 enum class BrickPin
@@ -54,21 +58,27 @@ class Brick
 {
 protected:
 
-	BrickBus *mbus;
+	BrickBus *bbus;
 	
 	int address;
-	
-public:
 
+private:
+	
 	Brick(BrickBus *bus, int slaveAddress);
 
-	~Brick();
+public:
+
+	Brick(Brick *brick);
+
+	virtual ~Brick();
 
 	BrickType getType();
 
 	unsigned char getFirmwareVersion(); 
 
 	void reset();
+
+	friend class BrickBus;
 };
 
 }

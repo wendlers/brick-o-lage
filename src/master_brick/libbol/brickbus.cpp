@@ -28,6 +28,8 @@
 
 #include "brickexception.hpp"
 #include "brickbus.hpp"
+#include "brick.hpp"
+#include "diobrick.hpp"
 
 // #define TRACE	std::cout << __func__ << std::endl;
 #define TRACE
@@ -44,6 +46,14 @@ bol::BrickBus::BrickBus(const char *device)
 bol::BrickBus::~BrickBus()
 {
 	TRACE
+
+	BrickMap::iterator it; 
+
+	for(it = bmap.begin(); it != bmap.end(); ++it)
+	{
+		Brick * b = it->second;
+		delete b;
+	}
 
 	close();
 }
@@ -142,6 +152,40 @@ std::vector<unsigned char> bol::BrickBus::xfer(int slaveAddress, std::vector<uns
 
 	return res;
 }	
+
+bol::Brick *bol::BrickBus::getBrickByAddress(int slaveAddress)
+{
+	return getBrickByAddress(slaveAddress, BrickType::ANY);
+}
+
+bol::Brick *bol::BrickBus::getBrickByAddress(int slaveAddress, BrickType type)
+{
+	if(bmap[slaveAddress] != NULL)
+	{
+		return bmap[slaveAddress];
+	}
+
+	Brick genericBrick(this, slaveAddress);
+	Brick *brick = NULL;
+	
+	if(type != BrickType::ANY && genericBrick.getType() != type)
+	{
+        throw BrickException("Brick has not expected type");
+	}
+ 
+	if(genericBrick.getType() == BrickType::DIO)
+	{
+		brick = new DioBrick(&genericBrick);
+	}
+	else	
+	{
+        throw BrickException("Brick type not supported");
+	}
+
+	bmap.insert(BrickMapPair(slaveAddress, brick));
+
+	return brick;
+}
 
 void bol::BrickBus::open(const char *device)
 {

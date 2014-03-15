@@ -21,14 +21,23 @@
 #define __BRICKBUS_HPP__
 
 #include <vector>
+#include <map>
 
 namespace bol {
+
+class Brick;
+enum class BrickType; 
+
+typedef std::map<int, Brick *> BrickMap;
+typedef std::pair<int, Brick *> BrickMapPair;
 
 class BrickBus
 {
 private:
 	
 	int fd; 
+	
+	BrickMap bmap;
 
 public:
 
@@ -41,6 +50,10 @@ public:
 	std::vector<unsigned char> read(int slaveAddress, unsigned char reg, int expectedLength);
 
 	std::vector<unsigned char> xfer(int slaveAddress, std::vector<unsigned char> data, int expectedLength);
+
+	Brick *getBrickByAddress(int slaveAddress);
+
+	Brick *getBrickByAddress(int slaveAddress, BrickType type);
 
 private:
 

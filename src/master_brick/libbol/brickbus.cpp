@@ -51,7 +51,7 @@ bol::BrickBus::~BrickBus()
 
 	for(it = bmap.begin(); it != bmap.end(); ++it)
 	{
-		Brick * b = it->second;
+		Brick *b = it->second;
 		delete b;
 	}
 

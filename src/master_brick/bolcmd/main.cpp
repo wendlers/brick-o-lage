@@ -18,7 +18,8 @@
  */
 
 #include <iostream>
-#include "diobrick.hpp"
+#include <unistd.h>
+#include "brick.hpp"
 
 using namespace std;
 using namespace bol;
@@ -35,32 +36,33 @@ int main(void)
 
 		// ask for DIO brick on address 0x48
 		// if no brick at 0x48 or brick of different type, exception is thrown 
-		DioBrick *b = (DioBrick *)bb.getBrickByAddress(0x48, BrickType::DIO);
+		Brick *b = bb.getBrickByAddress(0x48, BrickType::DIO);
+
+		// describe brick by JSON meta data
+		cout << endl << "Brick description" << endl << b->describe() << endl << endl;
 
 		// reset MCU
 		cout << "Performe MCU reset" << endl;
 		b->reset();
 
-		// read HW type
-		cout << "Type = " << (int)(b->getType()) << endl;
-		
-		// read FW version
-		cout << "FW-Version = " << (int)(b->getFirmwareVersion()) << endl;
-	
 		// switch all outputs on
-		b->writeOut(BrickPin::P1, BrickLogVal::HIGH);
-		b->writeOut(BrickPin::P2, BrickLogVal::HIGH);
-		b->writeOut(BrickPin::P3, BrickLogVal::HIGH);
-		b->writeOut(BrickPin::P4, BrickLogVal::HIGH);
+		b->getPortByName("DO1")->setValue(1);
+		b->getPortByName("DO2")->setValue(1);
+		b->getPortByName("DO3")->setValue(1);
+		b->getPortByName("DO4")->setValue(1);
+		b->sync();
 
 		// map state of input to output for ever
 		while(1) 
 		{
-			// copy state of input to output
-			for(int pin = 0; pin < 4; pin++)
-			{			
-				b->writeOut(static_cast<BrickPin>(1 << pin), b->readIn(static_cast<BrickPin>(1 << pin)));
-			}
+			b->sync();	
+
+			b->getPortByName("DO1")->setValue(b->getPortByName("DI1")->getValue());
+			b->getPortByName("DO2")->setValue(b->getPortByName("DI2")->getValue());
+			b->getPortByName("DO3")->setValue(b->getPortByName("DI3")->getValue());
+			b->getPortByName("DO4")->setValue(b->getPortByName("DI4")->getValue());
+
+			usleep(20000);
 		}
 	}
 	catch (exception& e)

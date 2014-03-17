@@ -10,7 +10,7 @@ include $(TOPDIR)/config/make/settings.mak
 CFLAGS 	+= -std=c++0x -I./include 
 ARFLAGS  = rcs
 
-SOURCES=brickbus.cpp brick.cpp diobrick.cpp 
+SOURCES=brickbus.cpp brickport.cpp brick.cpp diobrick.cpp 
 
 OBJECTS=$(SOURCES:.cpp=.o)
 LIBRARY=libbrick-o-lage.a

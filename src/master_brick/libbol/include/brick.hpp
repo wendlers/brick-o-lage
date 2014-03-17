@@ -23,6 +23,7 @@
 #include <exception>
 
 #include "brickbus.hpp"
+#include "brickport.hpp"
 
 namespace bol {
 
@@ -36,24 +37,6 @@ enum class BrickType
 	ANY 	= 0xFF,
 };
 
-enum class BrickPin
-{ 
-	P1 = 0b00000001,
-	P2 = 0b00000010,
-	P3 = 0b00000100,
-	P4 = 0b00001000,
-	P5 = 0b00010000,
-	P6 = 0b00100000,
-	P7 = 0b01000000,
-	P8 = 0b10000000,
-};
-
-enum class BrickLogVal
-{ 
-	LOW  = 0x00,
-	HIGH = 0x01,
-};
-
 class Brick
 {
 protected:
@@ -61,6 +44,8 @@ protected:
 	BrickBus *bbus;
 	
 	int address;
+
+	BrickPortMap pmap;
 
 private:
 	
@@ -77,6 +62,18 @@ public:
 	unsigned char getFirmwareVersion(); 
 
 	void reset();
+
+	BrickPort *getPortByName(const char *name);
+
+	BrickPortMap *getPorts();
+
+	virtual void sync(bool out = true, bool in = true);
+
+	std::string describe();
+
+protected:
+
+	void addPort(BrickPort *port);
 
 	friend class BrickBus;
 };

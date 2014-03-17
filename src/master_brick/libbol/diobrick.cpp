@@ -29,32 +29,63 @@
 bol::DioBrick::DioBrick(Brick *brick) : bol::Brick(brick)
 {
 	pout = 0x00;
+
+	addPort(new BrickPort("DI1", BrickPortType::INPUT));
+	addPort(new BrickPort("DI2", BrickPortType::INPUT));
+	addPort(new BrickPort("DI3", BrickPortType::INPUT));
+	addPort(new BrickPort("DI4", BrickPortType::INPUT));
+
+	addPort(new BrickPort("DO1", BrickPortType::OUTPUT));
+	addPort(new BrickPort("DO2", BrickPortType::OUTPUT));
+	addPort(new BrickPort("DO3", BrickPortType::OUTPUT));
+	addPort(new BrickPort("DO4", BrickPortType::OUTPUT));
 }
 
 bol::DioBrick::~DioBrick()
 {
+	try
+	{
+		getPortByName("DI1")->setValue(0);
+		getPortByName("DI2")->setValue(0);
+		getPortByName("DI3")->setValue(0);
+		getPortByName("DI4")->setValue(0);
+
+		sync(true, false);
+	}
+	catch(...)
+	{
+		// so then we don't reset the ports ...
+	}
 }
 
-void bol::DioBrick::writeOut(bol::BrickPin pin, bol::BrickLogVal value)
+void bol::DioBrick::sync(bool out, bool in)
 {
-	if(value == bol::BrickLogVal::HIGH) {
-		pout |= (unsigned char)pin;
+	if(out)
+	{
+		unsigned char _pout = 0x00;
+
+		_pout |= (getPortByName("DO1")->getValue() << 0);
+		_pout |= (getPortByName("DO2")->getValue() << 1);
+		_pout |= (getPortByName("DO3")->getValue() << 2);
+		_pout |= (getPortByName("DO4")->getValue() << 3);
+
+		// only sync outputs when they changed
+		if(_pout != pout)
+		{
+			std::vector<unsigned char> msg1 = {CMD_SET_POUT, _pout};
+			bbus->write(address, msg1);
+			pout = _pout;
+		}
 	}
-	else {
-		pout &= ~(unsigned char)pin;
+
+	if(in)
+	{
+		// always sync inputs
+		std::vector<unsigned char> res = bbus->read(address, CMD_GET_PIN, 1);
+
+		getPortByName("DI1")->setValue((res[0] >> 0) & 1);
+		getPortByName("DI2")->setValue((res[0] >> 1) & 1);
+		getPortByName("DI3")->setValue((res[0] >> 2) & 1);
+		getPortByName("DI4")->setValue((res[0] >> 3) & 1);
 	}
-
-	std::vector<unsigned char> msg1 = {CMD_SET_POUT, pout};
-	bbus->write(address, msg1);
-}
-
-bol::BrickLogVal bol::DioBrick::readIn(bol::BrickPin pin)	
-{
-	std::vector<unsigned char> res = bbus->read(address, CMD_GET_PIN, 1);
-
-	if(res[0] & (unsigned char)pin) {
-		return bol::BrickLogVal::HIGH;
-	}
-
-	return bol::BrickLogVal::LOW;
 }

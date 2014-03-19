@@ -45,6 +45,10 @@ protected:
 	
 	int address;
 
+	int priority;
+
+	int currentPriority;
+
 	BrickPortMap pmap;
 
 private:
@@ -67,11 +71,17 @@ public:
 
 	BrickPortMap *getPorts();
 
+	void setSyncPriority(int syncPriority);
+
+	int getSyncPriority();
+
 	virtual void sync(bool out = true, bool in = true);
 
 	std::string describe();
 
 protected:
+
+	bool shouldSync();
 
 	void addPort(BrickPort *port);
 

@@ -31,20 +31,10 @@ bol::Brick::Brick(bol::BrickBus *bus, int slaveAddress)
 	bbus = bus;
 
 	address = slaveAddress;
+
+	priority = 0;
+	currentPriority = 0;
 }
-
-void bol::Brick::addPort(BrickPort *port)
-{
-	pmap.insert(BrickPortMapPair(port->getName(), port));
-}
-
-bol::Brick::Brick(bol::Brick *brick)
-{
-	bbus = brick->bbus;
-
-	address = brick->address;
-}
-
 
 bol::Brick::~Brick()
 {
@@ -57,11 +47,31 @@ bol::Brick::~Brick()
 	}
 }
 
+void bol::Brick::addPort(BrickPort *port)
+{
+	pmap[port->getName()] = port;
+}
+
+bol::Brick::Brick(bol::Brick *brick)
+{
+	bbus = brick->bbus;
+
+	address = brick->address;
+}
+
+
 bol::BrickType bol::Brick::getType()
 {
-	std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
+	static int t = -1;
 
-	switch(res[0]) {
+	if(t == -1)
+	{
+		std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
+
+		t = res[0];
+	}
+
+	switch(t) {
 		case 0x01: return bol::BrickType::DIO;
 	}
 
@@ -70,9 +80,15 @@ bol::BrickType bol::Brick::getType()
 
 unsigned char bol::Brick::getFirmwareVersion() 
 {
-	std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
+	static int f = -1;
 
-	return res[0];
+	if(f == -1)
+	{
+		std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
+		f = res[0];
+	}
+
+	return (unsigned char)f;
 }
 
 void bol::Brick::reset()
@@ -100,7 +116,11 @@ std::string bol::Brick::describe()
 {
 	std::stringstream d;
 
-	d << "{\"Brick\": " << std::endl << "{\"type\"=";
+	d << "{\"Brick\": " << std::endl; 
+
+	d << "{\"address\"=" << address;
+
+	d << ", \"type\"=";
 
 	BrickType type = getType();
 
@@ -144,6 +164,31 @@ std::string bol::Brick::describe()
 	return d.str();
 }
 
+void bol::Brick::setSyncPriority(int syncPriority)
+{
+	priority 		= syncPriority; 
+	currentPriority = 0;
+}
+
+int bol::Brick::getSyncPriority()
+{
+	return priority;
+}
+
 void bol::Brick::sync(bool out, bool in)
 {
 }
+
+bool bol::Brick::shouldSync()
+{
+	if(currentPriority == priority)
+	{
+		currentPriority = 0;
+		return true;
+	}
+
+	currentPriority++;
+	
+	return false;
+}
+

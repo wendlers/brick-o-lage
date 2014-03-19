@@ -7,9 +7,8 @@ TOPDIR=../../..
 include $(TOPDIR)/config/make/cross-mips.mak
 include $(TOPDIR)/config/make/settings.mak
 
-CFLAGS 	+= -std=c++0x -I./include 
+CFLAGS 	+= -std=c++0x -I./include -I$(TARGET_DIR)/usr/include
 ARFLAGS  = rcs
-
 SOURCES=brickbus.cpp brickport.cpp brick.cpp diobrick.cpp 
 
 OBJECTS=$(SOURCES:.cpp=.o)

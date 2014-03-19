@@ -43,7 +43,14 @@ bol::BrickPortType bol::BrickPort::getType()
 
 void bol::BrickPort::setValue(int value)
 {
+	bool doSig = (current != value); 
+
 	current = value;
+	
+	if(doSig)
+	{
+		sig(this);
+	}
 }
 
 int bol::BrickPort::getValue()
@@ -89,4 +96,15 @@ std::string bol::BrickPort::describe()
 	d << "}";
 
 	return d.str();
+}    
+
+bol::BrickPort::BrickPortSigCon bol::BrickPort::connect(bol::BrickPort::BrickPortSig::slot_function_type subscriber)
+{
+	return sig.connect(subscriber);
 }
+
+void bol::BrickPort::disconnect(bol::BrickPort::BrickPortSigCon subscriber)
+{
+	subscriber.disconnect();
+}
+

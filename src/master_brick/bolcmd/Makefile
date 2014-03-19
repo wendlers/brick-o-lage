@@ -8,9 +8,9 @@ include $(TOPDIR)/config/make/cross-mips.mak
 include $(TOPDIR)/config/make/settings.mak
 
 CFLAGS 	+= -std=c++0x 
-CFLAGS	+= -I$(TOPDIR)/src/master_brick/libbol/include
+CFLAGS	+= -I$(TOPDIR)/src/master_brick/libbol/include -I$(TARGET_DIR)/usr/include
 LDFLAGS += -L$(TOPDIR)/src/master_brick/libbol -L$(TARGET_DIR)/usr/lib
-LIBS	+= -lbrick-o-lage
+LIBS	+= -lbrick-o-lage -lboost_thread -lboost_chrono -lboost_system -lboost_signals -lpthread
 
 SOURCES=main.cpp
 

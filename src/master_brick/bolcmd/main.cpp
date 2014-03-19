@@ -19,50 +19,104 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
+
 #include "brick.hpp"
+#include "diobrick.hpp"
 
 using namespace std;
 using namespace bol;
 
+static bool terminated = false;
+
+// catch sigterm
+void sigHandler(int) 
+{
+    terminated = true;
+}
+
+// port update handler for changing inputs
+class PortUpdateHandler
+{
+private:
+
+	Brick *b;
+
+public:
+
+	PortUpdateHandler(Brick *brick)
+	{
+		b = brick;
+	}
+
+	void onUpdate(BrickPort *p)
+	{
+		cout << "PortUpate: name=" << p->getName() << ", value=" << p->getValue() << endl;
+
+		if(p->getName() == DioBrick::DI1)
+		{
+			cout << "change DO1" << endl;
+			b->getPortByName(DioBrick::DO1)->setValue(p->getValue());
+		}
+		else if(p->getName() == DioBrick::DI2)
+		{
+			cout << "change DO2" << endl;
+			b->getPortByName(DioBrick::DO2)->setValue(p->getValue());
+		}
+		else if(p->getName() == DioBrick::DI3)
+		{
+			cout << "change DO3" << endl;
+			b->getPortByName(DioBrick::DO3)->setValue(p->getValue());
+		}
+		else if(p->getName() == DioBrick::DI4)
+		{
+			cout << "change DO4" << endl;
+			b->getPortByName(DioBrick::DO4)->setValue(p->getValue());
+		}
+	}
+};
+
 int main(void) 
 {
-
-	cout << "DIO" << endl;
-
 	try
 	{
+		// handle sigint
+		signal(SIGINT, sigHandler);
+
 		// get brick bus instance
 		BrickBus bb; 
-
+		
 		// ask for DIO brick on address 0x48
 		// if no brick at 0x48 or brick of different type, exception is thrown 
 		Brick *b = bb.getBrickByAddress(0x48, BrickType::DIO);
 
-		// describe brick by JSON meta data
-		cout << endl << "Brick description" << endl << b->describe() << endl << endl;
+		// lower bricks priority for syncing (0 = highest)
+		b->setSyncPriority(3);
 
-		// reset MCU
-		cout << "Performe MCU reset" << endl;
+		// describe bus and bricks by JSON meta data
+		cout << endl << bb.describe() << endl << endl;
+
+		// reset brick 
 		b->reset();
 
-		// switch all outputs on
-		b->getPortByName("DO1")->setValue(1);
-		b->getPortByName("DO2")->setValue(1);
-		b->getPortByName("DO3")->setValue(1);
-		b->getPortByName("DO4")->setValue(1);
-		b->sync();
+		// set all outputs to HIGH 
+		b->getPortByName(DioBrick::DO1)->setValue(DioBrick::HIGH);
+		b->getPortByName(DioBrick::DO2)->setValue(DioBrick::HIGH);
+		b->getPortByName(DioBrick::DO3)->setValue(DioBrick::HIGH);
+		b->getPortByName(DioBrick::DO4)->setValue(DioBrick::HIGH);
 
-		// map state of input to output for ever
-		while(1) 
+		// connect signals for input port updates
+		PortUpdateHandler h(b);
+
+		b->getPortByName(DioBrick::DI1)->connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+		b->getPortByName(DioBrick::DI2)->connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+		b->getPortByName(DioBrick::DI3)->connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+		b->getPortByName(DioBrick::DI4)->connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+
+		// loop until SIGINT received
+		while(!terminated) 
 		{
-			b->sync();	
-
-			b->getPortByName("DO1")->setValue(b->getPortByName("DI1")->getValue());
-			b->getPortByName("DO2")->setValue(b->getPortByName("DI2")->getValue());
-			b->getPortByName("DO3")->setValue(b->getPortByName("DI3")->getValue());
-			b->getPortByName("DO4")->setValue(b->getPortByName("DI4")->getValue());
-
-			usleep(20000);
+			usleep(10000);
 		}
 	}
 	catch (exception& e)
@@ -70,6 +124,8 @@ int main(void)
 		cerr << "exception caught: " << e.what() << endl;
 		return 1;
 	}
+
+	cout << "Terminated" << endl;
 
 	return 0;
 }

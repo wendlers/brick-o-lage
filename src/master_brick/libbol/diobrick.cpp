@@ -26,29 +26,42 @@
 #define CMD_SET_POUT    0x01
 #define CMD_GET_PIN     0x02
 
+const int bol::DioBrick::LOW  = 0;
+const int bol::DioBrick::HIGH = 1;
+
+const char* bol::DioBrick::DI1 = "DI1";
+const char* bol::DioBrick::DI2 = "DI2";
+const char* bol::DioBrick::DI3 = "DI3";
+const char* bol::DioBrick::DI4 = "DI4";
+
+const char* bol::DioBrick::DO1 = "DO1";
+const char* bol::DioBrick::DO2 = "DO2";
+const char* bol::DioBrick::DO3 = "DO3";
+const char* bol::DioBrick::DO4 = "DO4";
+
 bol::DioBrick::DioBrick(Brick *brick) : bol::Brick(brick)
 {
 	pout = 0x00;
 
-	addPort(new BrickPort("DI1", BrickPortType::INPUT));
-	addPort(new BrickPort("DI2", BrickPortType::INPUT));
-	addPort(new BrickPort("DI3", BrickPortType::INPUT));
-	addPort(new BrickPort("DI4", BrickPortType::INPUT));
+	addPort(new BrickPort(DI1, BrickPortType::INPUT));
+	addPort(new BrickPort(DI2, BrickPortType::INPUT));
+	addPort(new BrickPort(DI3, BrickPortType::INPUT));
+	addPort(new BrickPort(DI4, BrickPortType::INPUT));
 
-	addPort(new BrickPort("DO1", BrickPortType::OUTPUT));
-	addPort(new BrickPort("DO2", BrickPortType::OUTPUT));
-	addPort(new BrickPort("DO3", BrickPortType::OUTPUT));
-	addPort(new BrickPort("DO4", BrickPortType::OUTPUT));
+	addPort(new BrickPort(DO1, BrickPortType::OUTPUT));
+	addPort(new BrickPort(DO2, BrickPortType::OUTPUT));
+	addPort(new BrickPort(DO3, BrickPortType::OUTPUT));
+	addPort(new BrickPort(DO4, BrickPortType::OUTPUT));
 }
 
 bol::DioBrick::~DioBrick()
 {
 	try
 	{
-		getPortByName("DI1")->setValue(0);
-		getPortByName("DI2")->setValue(0);
-		getPortByName("DI3")->setValue(0);
-		getPortByName("DI4")->setValue(0);
+		getPortByName(DO1)->setValue(LOW);
+		getPortByName(DO2)->setValue(LOW);
+		getPortByName(DO3)->setValue(LOW);
+		getPortByName(DO4)->setValue(LOW);
 
 		sync(true, false);
 	}
@@ -60,14 +73,19 @@ bol::DioBrick::~DioBrick()
 
 void bol::DioBrick::sync(bool out, bool in)
 {
+	if(!shouldSync())
+	{
+		return;
+	}
+
 	if(out)
 	{
 		unsigned char _pout = 0x00;
 
-		_pout |= (getPortByName("DO1")->getValue() << 0);
-		_pout |= (getPortByName("DO2")->getValue() << 1);
-		_pout |= (getPortByName("DO3")->getValue() << 2);
-		_pout |= (getPortByName("DO4")->getValue() << 3);
+		_pout |= (getPortByName(DO1)->getValue() << 0);
+		_pout |= (getPortByName(DO2)->getValue() << 1);
+		_pout |= (getPortByName(DO3)->getValue() << 2);
+		_pout |= (getPortByName(DO4)->getValue() << 3);
 
 		// only sync outputs when they changed
 		if(_pout != pout)
@@ -83,9 +101,9 @@ void bol::DioBrick::sync(bool out, bool in)
 		// always sync inputs
 		std::vector<unsigned char> res = bbus->read(address, CMD_GET_PIN, 1);
 
-		getPortByName("DI1")->setValue((res[0] >> 0) & 1);
-		getPortByName("DI2")->setValue((res[0] >> 1) & 1);
-		getPortByName("DI3")->setValue((res[0] >> 2) & 1);
-		getPortByName("DI4")->setValue((res[0] >> 3) & 1);
+		getPortByName(DI1)->setValue((res[0] >> 0) & 1);
+		getPortByName(DI2)->setValue((res[0] >> 1) & 1);
+		getPortByName(DI3)->setValue((res[0] >> 2) & 1);
+		getPortByName(DI4)->setValue((res[0] >> 3) & 1);
 	}
 }

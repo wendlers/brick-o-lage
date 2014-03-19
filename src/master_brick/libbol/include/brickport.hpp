@@ -23,6 +23,9 @@
 #include <map>
 #include <string>
 
+#include <boost/signal.hpp>
+#include <boost/bind.hpp>
+
 namespace bol {
 
 enum class BrickPortType {
@@ -30,8 +33,14 @@ enum class BrickPortType {
 	OUTPUT = 1,
 };
 
+
 class BrickPort
 {
+public:
+
+	typedef boost::signal<void (BrickPort *)>  BrickPortSig;
+	typedef boost::signals::connection  BrickPortSigCon;
+
 private:
 	
 	std::string	name;
@@ -43,6 +52,8 @@ private:
 	int	step;
 	int current;
 
+	BrickPortSig sig;
+	
 public:
 
 	BrickPort(std::string portName, BrickPortType portType, int valueFrom = 0, int valueTo = 1, int valueStep = 1);
@@ -62,10 +73,13 @@ public:
 	int getValueStep();
 
 	std::string describe();
+
+    BrickPortSigCon connect(BrickPortSig::slot_function_type subscriber);
+
+    void disconnect(BrickPortSigCon subscriber);
 };
 
 typedef std::map<std::string, BrickPort *> BrickPortMap;
-typedef std::pair<std::string, BrickPort *> BrickPortMapPair;
 
 }
 #endif

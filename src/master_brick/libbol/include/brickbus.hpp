@@ -20,8 +20,12 @@
 #ifndef __BRICKBUS_HPP__
 #define __BRICKBUS_HPP__
 
+#include <string>
 #include <vector>
 #include <map>
+
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
 
 namespace bol {
 
@@ -29,19 +33,24 @@ class Brick;
 enum class BrickType; 
 
 typedef std::map<int, Brick *> BrickMap;
-typedef std::pair<int, Brick *> BrickMapPair;
 
 class BrickBus
 {
 private:
 	
+	int address;
+
 	int fd; 
 	
 	BrickMap bmap;
 
+	boost::thread *syncThread;
+
+	boost::mutex busMutex;
+
 public:
 
-	BrickBus(const char *device = "/dev/i2c-0");
+	BrickBus(int busAddress = 0, bool startSync = true);
 
 	~BrickBus();
 
@@ -55,7 +64,17 @@ public:
 
 	Brick *getBrickByAddress(int slaveAddress, BrickType type);
 
+	void sync(bool out= true, bool in = true);
+
+	void startSyncThread();
+
+	void stopSyncThread();
+
+	std::string describe();
+
 private:
+
+	void syncThreadFunction();
 
 	void open(const char *device);
 

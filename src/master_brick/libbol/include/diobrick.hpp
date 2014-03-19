@@ -35,6 +35,19 @@ private:
 
 public:
 
+	static const int LOW;
+	static const int HIGH;
+
+	static const char* DI1;
+	static const char* DI2;
+	static const char* DI3;
+	static const char* DI4;
+
+	static const char* DO1;
+	static const char* DO2;
+	static const char* DO3;
+	static const char* DO4;
+
 	void sync(bool out = true, bool in = true);
 
 	friend class BrickBus;

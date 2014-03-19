@@ -25,27 +25,44 @@
 #include <sys/ioctl.h>
 
 #include <iostream>
+#include <sstream>
 
 #include "brickexception.hpp"
 #include "brickbus.hpp"
 #include "brick.hpp"
 #include "diobrick.hpp"
 
-// #define TRACE	std::cout << __func__ << std::endl;
+// #define TRACE	std::cout << __func__ << "::" << __LINE__ << std::endl;
 #define TRACE
 
-bol::BrickBus::BrickBus(const char *device)
+#define DBG(...)	std::cout << __func__ << "::" << __VA_ARGS__ << std::endl;
+
+bol::BrickBus::BrickBus(int busAddress, bool startSync)
 {
 	TRACE
 
+	address = busAddress;
 	fd = -1;
 
+	char device[32];
+
+	sprintf(device, "/dev/i2c-%d", address);
+
 	open(device);
+
+	syncThread = NULL;	
+
+	if(startSync)
+	{
+		startSyncThread();
+	}
 }
 
 bol::BrickBus::~BrickBus()
 {
 	TRACE
+
+	stopSyncThread();
 
 	BrickMap::iterator it; 
 
@@ -61,6 +78,8 @@ bol::BrickBus::~BrickBus()
 void bol::BrickBus::write(int slaveAddress, std::vector<unsigned char> data) 
 {
 	TRACE
+
+	boost::mutex::scoped_lock l(busMutex); 
 
 	unsigned char buf;
 
@@ -88,6 +107,8 @@ void bol::BrickBus::write(int slaveAddress, std::vector<unsigned char> data)
 std::vector<unsigned char> bol::BrickBus::read(int slaveAddress, unsigned char reg, int expectedLength)
 {
 	TRACE
+
+	boost::mutex::scoped_lock l(busMutex); 
 
 	unsigned char *buf = new unsigned char[expectedLength];
 
@@ -122,6 +143,8 @@ std::vector<unsigned char> bol::BrickBus::read(int slaveAddress, unsigned char r
 std::vector<unsigned char> bol::BrickBus::xfer(int slaveAddress, std::vector<unsigned char> data, int expectedLength)
 {
 	TRACE
+
+	boost::mutex::scoped_lock l(busMutex); 
 
 	unsigned char *buf = new unsigned char[expectedLength];
 
@@ -160,13 +183,16 @@ bol::Brick *bol::BrickBus::getBrickByAddress(int slaveAddress)
 
 bol::Brick *bol::BrickBus::getBrickByAddress(int slaveAddress, BrickType type)
 {
+	TRACE
+
 	if(bmap[slaveAddress] != NULL)
 	{
+		DBG("Brick already in map");
+
 		return bmap[slaveAddress];
 	}
 
 	Brick genericBrick(this, slaveAddress);
-	Brick *brick = NULL;
 	
 	if(type != BrickType::ANY && genericBrick.getType() != type)
 	{
@@ -175,16 +201,16 @@ bol::Brick *bol::BrickBus::getBrickByAddress(int slaveAddress, BrickType type)
  
 	if(genericBrick.getType() == BrickType::DIO)
 	{
-		brick = new DioBrick(&genericBrick);
+		DBG("Found DIO brick");
+
+		bmap[slaveAddress] =  (Brick *)new DioBrick(&genericBrick);
 	}
 	else	
 	{
         throw BrickException("Brick type not supported");
 	}
 
-	bmap.insert(BrickMapPair(slaveAddress, brick));
-
-	return brick;
+	return bmap[slaveAddress];
 }
 
 void bol::BrickBus::open(const char *device)
@@ -205,3 +231,85 @@ void bol::BrickBus::close()
 	}	
 }
 
+void bol::BrickBus::sync(bool out, bool in)
+{
+
+	TRACE
+
+	BrickMap::iterator it; 
+
+	for(it = bmap.begin(); it != bmap.end(); ++it)
+	{
+		Brick *b = it->second;
+
+		if(b == NULL)
+		{
+			break;
+		}
+
+		b->sync(out, in);
+	}
+}
+
+void bol::BrickBus::startSyncThread()
+{
+	TRACE
+
+	if(syncThread != NULL)
+	{
+		return;
+	}
+	
+	syncThread = new boost::thread(boost::bind(&bol::BrickBus::syncThreadFunction, this));	
+}
+
+void bol::BrickBus::stopSyncThread()
+{
+	TRACE
+
+	if(syncThread != NULL)
+	{
+		syncThread->interrupt();
+		syncThread->join();
+		delete syncThread;
+		syncThread = NULL;
+	}
+}
+
+
+void bol::BrickBus::syncThreadFunction()
+{
+	TRACE
+
+	while(!boost::this_thread::interruption_requested())
+	{
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(25));
+		sync();
+	}
+
+	DBG("Sync thread ended");
+}
+
+std::string bol::BrickBus::describe()
+{
+	TRACE
+
+	std::stringstream d;
+	
+	d << "{\"BrickBus\": {";
+	d << "\"address\"=" << address;
+	d << ", \"bricks\"=[";
+
+	BrickMap::iterator it; 
+
+	for(it = bmap.begin(); it != bmap.end(); ++it)
+	{
+		Brick *b = it->second;
+		d << b->describe();
+	}
+
+
+	d << "]}}";
+
+	return d.str();
+}

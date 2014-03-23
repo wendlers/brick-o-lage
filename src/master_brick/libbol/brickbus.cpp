@@ -203,7 +203,7 @@ bol::Brick *bol::BrickBus::getBrickByAddress(int slaveAddress, BrickType type)
 	{
 		DBG("Found DIO brick");
 
-		bmap[slaveAddress] =  (Brick *)new DioBrick(&genericBrick);
+		bmap[slaveAddress] = (Brick *)new DioBrick(&genericBrick);
 	}
 	else	
 	{
@@ -244,6 +244,7 @@ void bol::BrickBus::sync(bool out, bool in)
 
 		if(b == NULL)
 		{
+			DBG("NULL brick in map!");
 			break;
 		}
 
@@ -275,7 +276,6 @@ void bol::BrickBus::stopSyncThread()
 		syncThread = NULL;
 	}
 }
-
 
 void bol::BrickBus::syncThreadFunction()
 {

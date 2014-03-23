@@ -112,6 +112,16 @@ bol::BrickPortMap *bol::Brick::getPorts()
 	return &pmap;
 }
 
+void bol::Brick::setPortValue(const char *name, int value)
+{
+	getPortByName(name)->setValue(value);
+}
+
+int bol::Brick::getPortValue(const char *name)
+{
+	return getPortByName(name)->getValue();
+}
+
 std::string bol::Brick::describe()
 {
 	std::stringstream d;

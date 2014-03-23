@@ -74,6 +74,8 @@ public:
 
 private:
 
+	void discover();
+
 	void syncThreadFunction();
 
 	void open(const char *device);

@@ -71,6 +71,10 @@ public:
 
 	BrickPortMap *getPorts();
 
+	void setPortValue(const char *name, int value);
+
+	int  getPortValue(const char *name);
+
 	void setSyncPriority(int syncPriority);
 
 	int getSyncPriority();

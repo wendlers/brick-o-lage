@@ -38,7 +38,7 @@ class BrickPort
 {
 public:
 
-	typedef boost::signal<void (BrickPort *)>  BrickPortSig;
+	typedef boost::signal<void (BrickPort &)>  BrickPortSig;
 	typedef boost::signals::connection  BrickPortSigCon;
 
 private:
@@ -57,6 +57,8 @@ private:
 public:
 
 	BrickPort(std::string portName, BrickPortType portType, int valueFrom = 0, int valueTo = 1, int valueStep = 1);
+
+	BrickPort(const BrickPort &port);
 
 	std::string getName();
 
@@ -77,9 +79,14 @@ public:
     BrickPortSigCon connect(BrickPortSig::slot_function_type subscriber);
 
     void disconnect(BrickPortSigCon subscriber);
+
+    BrickPort &operator=(int portValue);
+
+    BrickPort &operator=(BrickPort &port);
+
+    operator int();
 };
 
 typedef std::map<std::string, BrickPort *> BrickPortMap;
-
 }
 #endif

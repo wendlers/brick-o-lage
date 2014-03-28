@@ -39,31 +39,26 @@ enum class BrickType
 
 class Brick
 {
-protected:
-
-	BrickBus *bbus;
-	
-	int address;
-
-	int priority;
-
-	int currentPriority;
-
-	BrickPortMap pmap;
-
 private:
-	
-	Brick(BrickBus *bus, int slaveAddress);
+
+	GenericBrick *brick;
 
 public:
 
-	Brick(Brick *brick);
+	static const char* DIO1;
+	static const char* DIO2;
+	static const char* DIO3;
+	static const char* DIO4;
 
-	virtual ~Brick();
+	Brick(int slaveAddress);
+
+	Brick(int slaveAddress, BrickType type);
+
+	Brick(const char *name);
 
 	BrickType getType();
 
-	unsigned char getFirmwareVersion(); 
+	unsigned char getFirmwareVersion();
 
 	void reset();
 
@@ -79,11 +74,64 @@ public:
 
 	int getSyncPriority();
 
-	virtual void sync(bool out = true, bool in = true);
+	std::string describe();
+
+	BrickPort &operator[](const char *name);
+};
+
+class GenericBrick
+{
+protected:
+
+	BrickBus *bbus;
+
+	int address;
+
+	int priority;
+
+	int currentPriority;
+
+	int	fwVersion;
+
+	BrickType type;
+
+	BrickPortMap pmap;
+
+	GenericBrick(BrickBus *brickBus, int slaveAddress);
+
+protected:
+
+	GenericBrick(const GenericBrick &brick);
+
+public:
+
+	virtual ~GenericBrick();
+
+	BrickType getType();
+
+	unsigned char getFirmwareVersion();
+
+	void reset();
+
+	BrickPort *getPortByName(const char *name);
+
+	BrickPortMap *getPorts();
+
+	void setPortValue(const char *name, int value);
+
+	int  getPortValue(const char *name);
+
+	void setSyncPriority(int syncPriority);
+
+	int getSyncPriority();
 
 	std::string describe();
 
+	BrickPort &operator[](const char *name);
+
 protected:
+
+	virtual void sync(bool out = true, bool in = true);
 
 	bool shouldSync();
 

@@ -40,38 +40,33 @@ class PortUpdateHandler
 {
 private:
 
-	Brick *b;
+	Brick b;
 
 public:
 
-	PortUpdateHandler(Brick *brick)
+	PortUpdateHandler(Brick &brick) : b(brick)
 	{
-		b = brick;
+		cout << "con" << endl;
 	}
 
-	void onUpdate(BrickPort *p)
+	void onUpdate(BrickPort &p)
 	{
-		cout << "PortUpate: name=" << p->getName() << ", value=" << p->getValue() << endl;
+		cout << "PortUpate: name=" << p.getName() << ", value=" << (int)p << endl;
 
-		if(p->getName() == DioBrick::DI1)
+		if(p.getName() == DioBrick::DI1)
 		{
 			cout << "change DO1" << endl;
-			(*b)[DioBrick::DO1] = p->getValue();
+			b[DioBrick::DO1] = p;
 		}
-		else if(p->getName() == DioBrick::DI2)
+		else if(p.getName() == DioBrick::DI2)
 		{
 			cout << "change DO2" << endl;
-			(*b)[DioBrick::DO2] = p->getValue();
+			b[DioBrick::DO2] = p;
 		}
-		else if(p->getName() == DioBrick::DI3)
+		else if(p.getName() == DioBrick::DI3)
 		{
 			cout << "change DO3" << endl;
-			(*b)[DioBrick::DO3] = p->getValue();
-		}
-		else if(p->getName() == DioBrick::DI4)
-		{
-			cout << "change DO4" << endl;
-			(*b)[DioBrick::DO4] = p->getValue();
+			b[DioBrick::DO3] = p;
 		}
 	}
 };
@@ -83,56 +78,41 @@ int main(void)
 		// handle sigint
 		signal(SIGINT, sigHandler);
 
-		// get brick bus instance
-		BrickBus bb; 
-		
+		// start brick bus
+		BrickBus::initialize();
+
 		// ask for DIO brick on address 0x48
-		// if no brick at 0x48 or brick of different type, exception is thrown 
+		// Brick b(0x48);
+		Brick b(Brick::DIO1);
 
-		// Brick *b = bb.getBrickByAddress(0x48, BrickType::DIO);
-
-		bb[Brick::DIO1].setSyncPriority(3);
-
-		// lower bricks priority for syncing (0 = highest)
-		// b->setSyncPriority(3);
+		// set sync priority
+		b.setSyncPriority(3);
 
 		// describe bus and bricks by JSON meta data
-		cout << endl << bb.describe() << endl << endl;
+		cout << endl << BrickBus::describe() << endl << endl;
 
-		// reset brick 
-		// b->reset();
-		bb[Brick::DIO1].reset();
-
-		// set all outputs to HIGH 
-		// b->getPortByName(DioBrick::DO1)->setValue(DioBrick::HIGH);
-		// b->getPortByName(DioBrick::DO2)->setValue(DioBrick::HIGH);
-		// b->getPortByName(DioBrick::DO3)->setValue(DioBrick::HIGH);
-		// b->getPortByName(DioBrick::DO4)->setValue(DioBrick::HIGH);
-		bb[Brick::DIO1][DioBrick::DO1] = DioBrick::HIGH;
-		bb[Brick::DIO1][DioBrick::DO2] = DioBrick::HIGH;
-		bb[Brick::DIO1][DioBrick::DO3] = DioBrick::HIGH;
-		bb[Brick::DIO1][DioBrick::DO4] = DioBrick::HIGH;
-
-		// connect signals for input port updates
-		Brick *b = bb.getBrickByAddress(0x48, BrickType::DIO);
+		b[DioBrick::DO1] = DioBrick::HIGH;
+		b[DioBrick::DO2] = DioBrick::HIGH;
+		b[DioBrick::DO3] = DioBrick::HIGH;
+		b[DioBrick::DO4] = DioBrick::HIGH;
 
 		PortUpdateHandler h(b);
 
-		(*b)[DioBrick::DI1].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
-		(*b)[DioBrick::DI2].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
-		(*b)[DioBrick::DI3].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
-		// (*b)[DioBrick::DI4].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+		b[DioBrick::DI1].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+		b[DioBrick::DI2].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+		b[DioBrick::DI3].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
 
 		// loop until SIGINT received
 		while(!terminated) 
 		{
-			(*b)[DioBrick::DO4] = DioBrick::HIGH;
+			b[DioBrick::DO4] = DioBrick::HIGH;
 			usleep(10000);
-			(*b)[DioBrick::DO4] = DioBrick::LOW;
+			b[DioBrick::DO4] = DioBrick::LOW;
 			usleep(10000);
 		}
 
-		// b->reset();
+		// stop brick bus
+		BrickBus::terminate();
 	}
 	catch (exception& e)
 	{

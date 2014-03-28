@@ -31,6 +31,17 @@ bol::BrickPort::BrickPort(std::string portName, BrickPortType portType, int valu
 	current = from;
 }
 
+bol::BrickPort::BrickPort(const BrickPort &port)
+{
+	name = port.name;
+	type = port.type;
+	from = port.from;
+	to   = port.to;
+	step = port.step;
+
+	current = from;
+}
+
 std::string bol::BrickPort::getName()
 {
 	return name;
@@ -49,7 +60,7 @@ void bol::BrickPort::setValue(int value)
 	
 	if(doSig)
 	{
-		sig(this);
+		sig(*this);
 	}
 }
 
@@ -108,3 +119,19 @@ void bol::BrickPort::disconnect(bol::BrickPort::BrickPortSigCon subscriber)
 	subscriber.disconnect();
 }
 
+bol::BrickPort &bol::BrickPort::operator=(int portValue)
+{
+	setValue(portValue);
+	return *this;
+}
+
+bol::BrickPort &bol::BrickPort::operator=(BrickPort &port)
+{
+	setValue(port);
+	return *this;
+}
+
+bol::BrickPort::operator int()
+{
+	return current;
+}

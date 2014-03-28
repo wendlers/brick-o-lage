@@ -29,10 +29,10 @@
 
 namespace bol {
 
-class Brick;
+class GenericBrick;
 enum class BrickType; 
 
-typedef std::map<int, Brick *> BrickMap;
+typedef std::map<int, GenericBrick *> BrickMap;
 
 class BrickBus
 {
@@ -48,39 +48,58 @@ private:
 
 	boost::mutex busMutex;
 
-public:
-
-	BrickBus(int busAddress = 0, bool startSync = true);
+	BrickBus(int busAddress = 0);
 
 	~BrickBus();
 
-	void write(int slaveAddress, std::vector<unsigned char> data); 
+	static BrickBus *busInstance;
+
+public:
+
+	static void initialize(int busAddress = 0);
+
+	static void terminate();
+
+	static BrickBus *getInstance();
+
+	static std::string describe();
+
+protected:
+
+	void write(int slaveAddress, std::vector<unsigned char> data);
 
 	std::vector<unsigned char> read(int slaveAddress, unsigned char reg, int expectedLength);
 
 	std::vector<unsigned char> xfer(int slaveAddress, std::vector<unsigned char> data, int expectedLength);
 
-	Brick *getBrickByAddress(int slaveAddress);
+	std::vector<GenericBrick *> getBricks();
 
-	Brick *getBrickByAddress(int slaveAddress, BrickType type);
+	GenericBrick *getBrickByAddress(int slaveAddress);
 
-	void sync(bool out= true, bool in = true);
+	GenericBrick *getBrickByAddress(int slaveAddress, BrickType type);
+
+	GenericBrick *getBrickByName(const char *name);
+
+private:
+
+
+	void discover();
 
 	void startSyncThread();
 
 	void stopSyncThread();
 
-	std::string describe();
-
-private:
-
-	void discover();
-
 	void syncThreadFunction();
+
+	void sync(bool out= true, bool in = true);
 
 	void open(const char *device);
 
 	void close();
+
+friend class Brick;
+friend class GenericBrick;
+friend class DioBrick;
 };
 
 }

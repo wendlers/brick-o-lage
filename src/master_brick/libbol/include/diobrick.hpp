@@ -24,12 +24,12 @@
 
 namespace bol {
 
-class DioBrick : public Brick
+class DioBrick : public GenericBrick
 {
 private:
 	unsigned char pout;
 
-	DioBrick(Brick *brick);
+	DioBrick(const GenericBrick &brick);
 
 	virtual ~DioBrick();
 
@@ -47,6 +47,8 @@ public:
 	static const char* DO2;
 	static const char* DO3;
 	static const char* DO4;
+
+protected:
 
 	void sync(bool out = true, bool in = true);
 

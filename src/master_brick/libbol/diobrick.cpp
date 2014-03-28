@@ -39,7 +39,7 @@ const char* bol::DioBrick::DO2 = "DO2";
 const char* bol::DioBrick::DO3 = "DO3";
 const char* bol::DioBrick::DO4 = "DO4";
 
-bol::DioBrick::DioBrick(Brick *brick) : bol::Brick(brick)
+bol::DioBrick::DioBrick(const GenericBrick &brick) : bol::GenericBrick(brick)
 {
 	pout = 0x00;
 
@@ -52,23 +52,13 @@ bol::DioBrick::DioBrick(Brick *brick) : bol::Brick(brick)
 	addPort(new BrickPort(DO2, BrickPortType::OUTPUT));
 	addPort(new BrickPort(DO3, BrickPortType::OUTPUT));
 	addPort(new BrickPort(DO4, BrickPortType::OUTPUT));
+
+	reset();
 }
 
 bol::DioBrick::~DioBrick()
 {
-	try
-	{
-		getPortByName(DO1)->setValue(LOW);
-		getPortByName(DO2)->setValue(LOW);
-		getPortByName(DO3)->setValue(LOW);
-		getPortByName(DO4)->setValue(LOW);
-
-		sync(true, false);
-	}
-	catch(...)
-	{
-		// so then we don't reset the ports ...
-	}
+	reset();
 }
 
 void bol::DioBrick::sync(bool out, bool in)

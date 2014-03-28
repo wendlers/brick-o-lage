@@ -26,17 +26,24 @@
 #define CMD_FW_TYPE		0xF0
 #define CMD_FW_VERSION	0xF1
 
-bol::Brick::Brick(bol::BrickBus *bus, int slaveAddress)
-{
-	bbus = bus;
+const char* bol::Brick::DIO1 = "DIO1";
+const char* bol::Brick::DIO2 = "DIO2";
+const char* bol::Brick::DIO3 = "DIO3";
+const char* bol::Brick::DIO4 = "DIO4";
 
+bol::GenericBrick::GenericBrick(BrickBus *brickBus, int slaveAddress)
+{
+	bbus = brickBus;
 	address = slaveAddress;
 
 	priority = 0;
 	currentPriority = 0;
+
+	fwVersion = -1;
+	type = BrickType::UNKNOWN;
 }
 
-bol::Brick::~Brick()
+bol::GenericBrick::~GenericBrick()
 {
 	BrickPortMap::iterator it; 
 
@@ -47,57 +54,65 @@ bol::Brick::~Brick()
 	}
 }
 
-void bol::Brick::addPort(BrickPort *port)
+void bol::GenericBrick::addPort(BrickPort *port)
 {
 	pmap[port->getName()] = port;
 }
 
-bol::Brick::Brick(bol::Brick *brick)
+bol::GenericBrick::GenericBrick(const bol::GenericBrick &brick)
 {
-	bbus = brick->bbus;
+	bbus 		= brick.bbus;
+	address 	= brick.address;
+	pmap		= brick.pmap;
 
-	address = brick->address;
+	priority 	= brick.priority;
+	currentPriority	= 0;
+
+	fwVersion = brick.fwVersion;
+	type = brick.type;
 }
 
-
-bol::BrickType bol::Brick::getType()
+bol::BrickType bol::GenericBrick::getType()
 {
-	static int t = -1;
-
-	if(t == -1)
+	if(type != BrickType::UNKNOWN)
 	{
-		std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
-
-		t = res[0];
+		return type;
 	}
 
-	switch(t) {
-		case 0x01: return bol::BrickType::DIO;
+	std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
+
+	switch(res[0]) {
+		case 0x01:
+			type = BrickType::DIO;
+			break;
+		default:
+			type = BrickType::UNKNOWN;
 	}
 
-	return bol::BrickType::UNKNOWN;
+	return type;
 }
 
-unsigned char bol::Brick::getFirmwareVersion() 
+unsigned char bol::GenericBrick::getFirmwareVersion() 
 {
-	static int f = -1;
-
-	if(f == -1)
+	if(fwVersion != -1)
 	{
-		std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
-		f = res[0];
+		return (unsigned char)fwVersion;
 	}
 
-	return (unsigned char)f;
+	std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
+
+	fwVersion = (int)res[0];
+
+	return (unsigned char)fwVersion;
 }
 
-void bol::Brick::reset()
+void bol::GenericBrick::reset()
 {
 	std::vector<unsigned char> msg = {CMD_RESET};
 	bbus->write(address, msg);
 }
 
-bol::BrickPort *bol::Brick::getPortByName(const char *name)
+bol::BrickPort *bol::GenericBrick::getPortByName(const char *name)
 {
 	if(pmap[name] == NULL)
 	{
@@ -107,22 +122,22 @@ bol::BrickPort *bol::Brick::getPortByName(const char *name)
 	return pmap[name];
 }
 
-bol::BrickPortMap *bol::Brick::getPorts()
+bol::BrickPortMap *bol::GenericBrick::getPorts()
 {
 	return &pmap;
 }
 
-void bol::Brick::setPortValue(const char *name, int value)
+void bol::GenericBrick::setPortValue(const char *name, int value)
 {
 	getPortByName(name)->setValue(value);
 }
 
-int bol::Brick::getPortValue(const char *name)
+int bol::GenericBrick::getPortValue(const char *name)
 {
 	return getPortByName(name)->getValue();
 }
 
-std::string bol::Brick::describe()
+std::string bol::GenericBrick::describe()
 {
 	std::stringstream d;
 
@@ -174,22 +189,27 @@ std::string bol::Brick::describe()
 	return d.str();
 }
 
-void bol::Brick::setSyncPriority(int syncPriority)
+void bol::GenericBrick::setSyncPriority(int syncPriority)
 {
 	priority 		= syncPriority; 
 	currentPriority = 0;
 }
 
-int bol::Brick::getSyncPriority()
+int bol::GenericBrick::getSyncPriority()
 {
 	return priority;
 }
 
-void bol::Brick::sync(bool out, bool in)
+bol::BrickPort &bol::GenericBrick::operator [](const char* name)
+{
+	return *getPortByName(name);
+}
+
+void bol::GenericBrick::sync(bool out, bool in)
 {
 }
 
-bool bol::Brick::shouldSync()
+bool bol::GenericBrick::shouldSync()
 {
 	if(currentPriority == priority)
 	{
@@ -202,3 +222,72 @@ bool bol::Brick::shouldSync()
 	return false;
 }
 
+bol::Brick::Brick(int slaveAddress)
+{
+	brick = BrickBus::getInstance()->getBrickByAddress(slaveAddress);
+}
+
+bol::Brick::Brick(int slaveAddress, bol::BrickType type)
+{
+	brick = BrickBus::getInstance()->getBrickByAddress(slaveAddress, type);
+}
+
+bol::Brick::Brick(const char *name)
+{
+	brick = BrickBus::getInstance()->getBrickByName(name);
+}
+
+bol::BrickType bol::Brick::getType()
+{
+	return brick->getType();
+}
+
+unsigned char bol::Brick::getFirmwareVersion()
+{
+	return brick->getFirmwareVersion();
+}
+
+void bol::Brick::reset()
+{
+	brick->reset();
+}
+
+bol::BrickPort* bol::Brick::getPortByName(const char* name)
+{
+	return brick->getPortByName(name);
+}
+
+bol::BrickPortMap* bol::Brick::getPorts()
+{
+	return brick->getPorts();
+}
+
+void bol::Brick::setPortValue(const char* name, int value)
+{
+	brick->setPortValue(name, value);
+}
+
+int bol::Brick::getPortValue(const char* name)
+{
+	return brick->getPortValue(name);
+}
+
+void bol::Brick::setSyncPriority(int syncPriority)
+{
+	brick->setSyncPriority(syncPriority);
+}
+
+int bol::Brick::getSyncPriority()
+{
+	return brick->getSyncPriority();
+}
+
+std::string bol::Brick::describe()
+{
+	return brick->describe();
+}
+
+bol::BrickPort& bol::Brick::operator [](const char* name)
+{
+	return *(brick->getPortByName(name));
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Brick-o-Lage</title>
+  <script type="text/javascript" src="blockly/blockly_compressed.js"></script>
+  <script type="text/javascript" src="blockly/python_compressed.js"></script>
+  <script type="text/javascript" src="blockly/blocks_compressed.js"></script>
+  <script type="text/javascript" src="blockly/blocks_bol.js"></script>
+  <script type="text/javascript" src="blockly/generator_bol.js"></script>
+  <script type="text/javascript" src="blockly/de.js"></script>
+  <style>
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+    }
+    h1 {
+      font-weight: normal;
+      font-size: 140%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Brick-o-Lage</h1>
+
+  <div id="blocklyDiv" style="height: 480px; width: 1000px;"></div>
+  <form method="post" action="/run">
+    <textarea id="pythonCode" name="pythonCode" style="height: 480px; width: 600px;"></textarea>
+    <input type="submit" value="Run"/>
+  </form>
+
+  <xml id="toolbox" style="display: none">
+    <block type="controls_if"></block>
+    <block type="controls_repeat_ext"></block>
+    <block type="logic_compare"></block>
+    <block type="math_number"></block>
+    <block type="math_arithmetic"></block>
+    <block type="text"></block>
+    <block type="text_print"></block>
+    <block type="brick_output"></block>
+    <block type="sleep_sec"></block>
+  </xml>
+
+  <script>
+    Blockly.inject(document.getElementById('blocklyDiv'),
+        {path: './blockly/', toolbox: document.getElementById('toolbox')});
+
+  	function updatePython() {
+    	var code = Blockly.Python.workspaceToCode();
+    	document.getElementById('pythonCode').value = code;
+  	}
+  	Blockly.addChangeListener(updatePython);
+  </script>
+
+</body>
+</html>

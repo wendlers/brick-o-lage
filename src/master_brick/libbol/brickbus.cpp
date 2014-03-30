@@ -80,11 +80,13 @@ void bol::BrickBus::initialize(int busAddress)
 {
 	TRACE
 
+	static SingletonWatch watch;
+
 	delete busInstance;
 
 	busInstance = new BrickBus(busAddress);
 
-	DBG("Bus initialized");
+	DBG("Bus initialised");
 }
 
 void bol::BrickBus::terminate()
@@ -100,7 +102,7 @@ bol::BrickBus *bol::BrickBus::getInstance()
 
 	if(busInstance == NULL)
 	{
-		throw BrickException("BrickBus not initialized");
+		initialize();
 	}
 
 	return busInstance;

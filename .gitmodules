@@ -4,3 +4,6 @@
 [submodule "libemb"]
 	path = libemb
 	url = git@github.com:wendlers/libemb.git
+[submodule "mongoose-cpp"]
+	path = mongoose-cpp
+	url = https://github.com/Gregwar/mongoose-cpp.git

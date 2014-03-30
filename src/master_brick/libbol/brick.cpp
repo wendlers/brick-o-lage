@@ -291,3 +291,8 @@ bol::BrickPort& bol::Brick::operator [](const char* name)
 {
 	return *(brick->getPortByName(name));
 }
+
+void bol::Brick::set_port(const char* brickName, const char* portName, const int value)
+{
+	 BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->setValue(value);
+}

@@ -54,6 +54,18 @@ private:
 
 	static BrickBus *busInstance;
 
+    class SingletonWatch
+    {
+    	public:
+
+			~SingletonWatch()
+			{
+				delete BrickBus::busInstance;
+			}
+     };
+
+     friend class SingletonWatch;
+
 public:
 
 	static void initialize(int busAddress = 0);

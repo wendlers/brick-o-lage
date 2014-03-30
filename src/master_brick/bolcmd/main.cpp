@@ -78,8 +78,8 @@ int main(void)
 		// handle sigint
 		signal(SIGINT, sigHandler);
 
-		// start brick bus
-		BrickBus::initialize();
+		// start brick bus (if no bus started, default bus will be started)
+		// BrickBus::initialize();
 
 		// ask for DIO brick on address 0x48
 		// Brick b(0x48);
@@ -111,8 +111,8 @@ int main(void)
 			usleep(10000);
 		}
 
-		// stop brick bus
-		BrickBus::terminate();
+		// stop brick bus (no need to do so, BrickBus singleton has watch ...
+		// BrickBus::terminate();
 	}
 	catch (exception& e)
 	{

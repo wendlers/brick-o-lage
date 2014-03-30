@@ -77,6 +77,8 @@ public:
 	std::string describe();
 
 	BrickPort &operator[](const char *name);
+
+	static void set_port(const char *brickName, const char *portName, const int value);
 };
 
 class GenericBrick

@@ -94,7 +94,6 @@ protected:
 
 private:
 
-
 	void discover();
 
 	void startSyncThread();

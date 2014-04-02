@@ -7,12 +7,16 @@ TOPDIR=../../..
 include $(TOPDIR)/config/make/cross-mips.mak
 include $(TOPDIR)/config/make/settings.mak
 
-CFLAGS 	+= -std=c++0x -I./include -I$(TARGET_DIR)/usr/include
-ARFLAGS  = rcs
-SOURCES=brickbus.cpp brickport.cpp brick.cpp diobrick.cpp 
+CFLAGS 	+= -std=c++0x 
+CFLAGS += -I./include
+CFLAGS += -I$(TARGET_DIR)/usr/include 
+CFLAGS += -I$(TARGET_DIR)/usr/include/python2.7
 
-OBJECTS=$(SOURCES:.cpp=.o)
-LIBRARY=libbrick-o-lage.a
+ARFLAGS  = rcs
+SOURCES  = brickbus.cpp brickport.cpp brick.cpp diobrick.cpp embpy.cpp
+
+OBJECTS = $(SOURCES:.cpp=.o)
+LIBRARY = libbrick-o-lage.a
 
 all: $(SOURCES) $(LIBRARY)
 	
@@ -26,4 +30,3 @@ $(LIBRARY): $(OBJECTS)
 clean:
 	@rm -f $(OBJECTS)
 	@rm -f $(LIBRARY)
-	@rm -fr $(LIBDIR)

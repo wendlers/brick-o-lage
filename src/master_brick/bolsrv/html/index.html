@@ -9,6 +9,7 @@
   <script type="text/javascript" src="blockly/blocks_bol.js"></script>
   <script type="text/javascript" src="blockly/generator_bol.js"></script>
   <script type="text/javascript" src="blockly/de.js"></script>
+  <script type="text/javascript" src="microajax.js"></script>
   <style>
     body {
       background-color: #fff;
@@ -23,11 +24,12 @@
 <body>
   <h1>Brick-o-Lage</h1>
 
-  <div id="blocklyDiv" style="height: 480px; width: 1000px;"></div>
-  <form method="post" action="/run">
-    <textarea id="pythonCode" name="pythonCode" style="height: 480px; width: 600px;"></textarea>
-    <input type="submit" value="Run"/>
+  <div id="blocklyDiv" style="height: 640px; width: 1000px;"></div>
+  <form id="code">
+    <textarea id="pythonCode" name="pythonCode" style="height: 200px; width: 600px;"></textarea>
   </form>
+  <button type="button" onClick="runScript()">Run</button>
+  <button type="button" onClick="stopScript()">Stop</button>
 
   <xml id="toolbox" style="display: none">
     <block type="controls_if"></block>
@@ -42,6 +44,23 @@
   </xml>
 
   <script>
+	function runScript()
+	{
+		req = new XMLHttpRequest();
+		req.open("POST", "/run", false);
+		req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		req.setRequestHeader('Connection', 'close');
+		req.send('pythonCode=' + document.getElementById('pythonCode').value);
+	}
+
+	function stopScript()
+	{
+		req = new XMLHttpRequest();                                     
+	        req.open("GET", "/stop", false); 
+	        req.send();
+	}
+	
     Blockly.inject(document.getElementById('blocklyDiv'),
         {path: './blockly/', toolbox: document.getElementById('toolbox')});
 

@@ -1,9 +1,11 @@
 
 init: init-submodules init-carambola
 
-build: build-carambola build-msp430
+build: build-carambola build-msp430 build-bol
 
-clean: clean-carambola clean-msp430
+clean: clean-msp430 clean-bol
+
+distclean: clean clean-carambola 
 
 init-submodules:
 	@git submodule init
@@ -32,6 +34,20 @@ build-msp430-libemb:
 build-msp430-test:
 	@make -C src/test/msp430-i2cslave/slave
 
+build-bol: build-libbol build-libmongoosecpp build-bolsrv build-bolcmd 
+
+build-libbol:
+	@make -C src/master_brick/libbol
+
+build-libmongoosecpp:
+	@make -C src/master_brick/libmongoosecpp
+
+build-bolsrv:
+	@make -C src/master_brick/bolsrv
+
+build-bolcmd:
+	@make -C src/master_brick/bolcmd
+
 clean-carambola: clean-carambola-test
 	@make -C carambola distclean
 
@@ -42,3 +58,19 @@ clean-msp430: clean-msp430-test
 
 clean-msp430-test:
 	@make -C src/test/msp430-i2cslave/slave clean
+
+clean-bol: clean-libbol clean-bolsrv clean-bolcmd clean-libmongoosecpp
+
+clean-libbol:
+	@make -C src/master_brick/libbol clean
+
+clean-libmongoosecpp:
+	@make -C src/master_brick/libmongoosecpp clean
+
+clean-bolsrv:
+	@make -C src/master_brick/bolsrv clean
+
+clean-bolcmd:
+	@make -C src/master_brick/bolcmd clean
+
+

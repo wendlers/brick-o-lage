@@ -39,15 +39,16 @@
     <block type="math_arithmetic"></block>
     <block type="text"></block>
     <block type="text_print"></block>
-    <block type="brick_output"></block>
-    <block type="sleep_sec"></block>
+    <block type="bol_dio_output"></block>
+    <block type="bol_dio_input"></block>
+    <block type="bol_sleep"></block>
   </xml>
 
   <script>
 	function runScript()
 	{
 		req = new XMLHttpRequest();
-		req.open("POST", "/run", false);
+		req.open("POST", "/scriptengine/run", false);
 		req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		req.setRequestHeader('Connection', 'close');
@@ -57,7 +58,7 @@
 	function stopScript()
 	{
 		req = new XMLHttpRequest();                                     
-	        req.open("GET", "/stop", false); 
+	        req.open("GET", "/scriptengine/stop", false); 
 	        req.send();
 	}
 	

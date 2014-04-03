@@ -17,49 +17,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __EMBPY_HPP__
-#define __EMBPY_HPP__
+#ifndef __BOLCONTROLLER_HPP__
+#define __BOLCONTROLLER_HPP__
 
-#include <string>
+#include <brickscript.hpp>
+#include <mongoose/WebController.h>
 
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
+namespace bol
+{
+namespace srv
+{
 
-namespace bol {
-
-class EmbeddedPython
+class BolController : public Mongoose::WebController
 {
 private:
 
-	bool pause;
-
-	boost::mutex pauseMutex;
-	boost::condition_variable pauseChanged;
-
-	boost::thread *execThread;
-	std::string currentProg;
+	bol::BrickScript bs;
 
 public:
 
-	EmbeddedPython();
+	void postRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	~EmbeddedPython();
+	void getRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void exec(std::string prog);
+	void getStop(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void stop();
-
-	bool isRunning();
-
-private:
-
-	void execThreadFunction();
-
-	void blockOnPause();
-
-	void setPause(bool doPause);
+	void setup();
 };
 
+}
 }
 
 #endif

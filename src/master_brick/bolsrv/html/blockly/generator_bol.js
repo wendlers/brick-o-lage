@@ -1,13 +1,27 @@
-Blockly.Python['brick_output'] = function(block) {
-  var value_brick_name = Blockly.Python.valueToCode(block, 'brick_name', Blockly.Python.ORDER_ATOMIC);
-  var value_brick_port = Blockly.Python.valueToCode(block, 'brick_port', Blockly.Python.ORDER_ATOMIC);
-  var value_brick_port_value = Blockly.Python.valueToCode(block, 'brick_port_value', Blockly.Python.ORDER_ATOMIC);
-  var code = 'bol.set_port(' + value_brick_name + ', ' + value_brick_port + ', ' + value_brick_port_value + ')\n';
+Blockly.Python['bol_dio_output'] = function(block) {
+  var dropdown_brick = block.getFieldValue('brick');
+  var dropdown_port = block.getFieldValue('port');
+  var value_out = Blockly.Python.valueToCode(block, 'out', Blockly.Python.ORDER_ATOMIC);
+
+  var code = 'bol.set_port("' + dropdown_brick + '", "' + dropdown_port + '", ' + value_out + ')\n';
+
   return code;
 };
 
-Blockly.Python['sleep_sec'] = function(block) {
-  var value_seconds = Blockly.Python.valueToCode(block, 'seconds', Blockly.Python.ORDER_ATOMIC);
-  var code = 'bol.sleep(' + value_seconds + ')\n';
+Blockly.Python['bol_dio_input'] = function(block) {
+  var dropdown_brick = block.getFieldValue('brick');
+  var dropdown_port = block.getFieldValue('port');
+
+  var code = 'bol.get_port("' + dropdown_brick + '", "' + dropdown_port + '")';
+  
+  return [code, Blockly.Python.ORDER_NONE];
+};
+
+Blockly.Python['bol_sleep'] = function(block) {
+  var dropdown_unit = block.getFieldValue('unit');
+  var value_amount = Blockly.Python.valueToCode(block, 'amount', Blockly.Python.ORDER_ATOMIC);
+
+  var code = 'bol.sleep(' + value_amount + ')\n';
+
   return code;
 };

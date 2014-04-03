@@ -9,6 +9,7 @@ include $(TOPDIR)/config/make/settings.mak
 
 CFLAGS  = -Wall 
 CFLAGS 	+= -std=c++0x 
+CFLAGS += -I./include
 CFLAGS	+= -I$(TOPDIR)/src/master_brick/libbol/include 
 CFLAGS += -I$(TOPDIR)/src/master_brick/libbolchai/include 
 CFLAGS += -I$(TOPDIR)/src/master_brick/libmongoosecpp/include
@@ -34,6 +35,7 @@ LIBS	+= -ldl
 LIBS	+= -lz
 
 SOURCES  = main.cpp
+SOURCES += bolcontroller.cpp
 
 OBJECTS 	= $(SOURCES:.cpp=.o) 
 EXECUTABLE 	= bolsrv

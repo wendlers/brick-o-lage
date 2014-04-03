@@ -20,7 +20,7 @@
 #include <boost/python.hpp>
 
 #include "brick.hpp"
-#include "embpy.hpp"
+#include "brickscript.hpp"
 
 struct BrickType_to_python_str
 {
@@ -45,20 +45,21 @@ BOOST_PYTHON_MODULE(bol)
 		.def("reset", &bol::Brick::reset)
 		.def("describe", &bol::Brick::describe);
 		boost::python::def("set_port", &bol::Brick::set_port);
+		boost::python::def("get_port", &bol::Brick::get_port);
 		boost::python::def("sleep", &::sleep);
 		boost::python::def("usleep", &::usleep);
 
 		boost::python::to_python_converter<bol::BrickType, BrickType_to_python_str>();
 }
 
-bol::EmbeddedPython::EmbeddedPython()
+bol::BrickScript::BrickScript()
 {
 	setPause(true);
 
 	execThread = NULL;
 }
 
-bol::EmbeddedPython::~EmbeddedPython()
+bol::BrickScript::~BrickScript()
 {
 	if(execThread != NULL)
 	{
@@ -68,49 +69,41 @@ bol::EmbeddedPython::~EmbeddedPython()
 		// on shutdown when engine is paused ...
 		if(pause)
 		{
-			exec("while True:\n\tprint 1\n");
+			run("while True:\n\tpass\n");
 		}
 
 		stop();
-
-		int tout = 100;
-
-		while(!pause)
-		{
-			usleep(10000);
-
-			if(tout-- < 0)
-			{
-				// std::cerr << "ERROR: unable to terminate running script" << std::endl;
-				break;
-			}
-		}
+		waitUntilStopped();
 
 		execThread->join();
 
 		delete execThread;
 		execThread = NULL;
 	}
-	std::cout << "Scritping Engine Terminated" << std::endl;
+
+	std::cout << std::endl;
+	std::cout << "**********************************" << std::endl;
+	std::cout << "** BOL scripting engine ended     " << std::endl;
+	std::cout << "**********************************" << std::endl;
+	std::cout << std::endl;
 }
 
-void bol::EmbeddedPython::exec(std::string prog)
+void bol::BrickScript::run(std::string prog)
 {
+	boost::mutex::scoped_lock l(runMutex);
+
 	if(!pause)
 	{
 		stop();
 
-		int tout = 100;
-
-		while(!pause)
+		if(!waitUntilStopped())
 		{
-			usleep(10000);
-
-			if(tout-- < 0)
-			{
-				std::cerr << "ERROR: unable to terminate running script" << std::endl;
-				return;
-			}
+			std::cout << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << "** BOL unable to stop script      " << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << std::endl;
+			return;
 		}
 	}
 
@@ -118,14 +111,14 @@ void bol::EmbeddedPython::exec(std::string prog)
 
 	if(execThread == NULL)
 	{
-		execThread = new boost::thread(boost::bind(&bol::EmbeddedPython::execThreadFunction, this));
+		execThread = new boost::thread(boost::bind(&bol::BrickScript::execThreadFunction, this));
 	}
 
 	setPause(false);
 }
 
 
-void bol::EmbeddedPython::stop()
+void bol::BrickScript::stop()
 {
 	if(execThread != NULL && Py_IsInitialized())
 	{
@@ -133,12 +126,12 @@ void bol::EmbeddedPython::stop()
 	}
 }
 
-bool bol::EmbeddedPython::isRunning()
+bool bol::BrickScript::isRunning()
 {
 	return !pause;
 }
 
-void bol::EmbeddedPython::execThreadFunction()
+void bol::BrickScript::execThreadFunction()
 {
 	Py_Initialize();
 
@@ -170,20 +163,42 @@ void bol::EmbeddedPython::execThreadFunction()
 	// boost::python::object main_module = boost::python::import("__main__");
 	// boost::python::object main_namespace = main_module.attr("__dict__");
 
+	std::cout << std::endl;
+	std::cout << "**********************************" << std::endl;
+	std::cout << "** BOL scripting engine started   " << std::endl;
+	std::cout << "**********************************" << std::endl;
+	std::cout << std::endl;
+
 	while(!boost::this_thread::interruption_requested())
 	{
 		blockOnPause();
 
 		try
 		{
-			std::cout << "Python script execution started" << std::endl;
+			std::cout << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << "** BOL script execution started   " << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << std::endl;
+
 			PyRun_SimpleString(currentProg.c_str());
 			// boost::python::object ignored = boost::python::exec(currentProg.c_str(), main_namespace);
-			std::cout << "Python script execution finished" << std::endl;
+
+			std::cout << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << "** BOL script execution ended     " << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << std::endl;
 		}
 		catch(boost::python::error_already_set)
 		{
-			PyErr_Print();
+			std::cout << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << "** BOL script execution failed    " << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << std::endl;
+
+			// PyErr_Print();
 		}
 
 		setPause(true);
@@ -200,29 +215,41 @@ void bol::EmbeddedPython::execThreadFunction()
 	PyThreadState_Delete(threadState);
 
 	Py_Finalize();
-
-//	delete execThread;
-//	execThread = NULL;
 }
 
-void bol::EmbeddedPython::blockOnPause()
+void bol::BrickScript::blockOnPause()
 {
     boost::unique_lock<boost::mutex> lock(pauseMutex);
 
     while(pause)
     {
-        std::cout << __func__ << std::endl;
         pauseChanged.wait(lock);
     }
 }
 
-void bol::EmbeddedPython::setPause(bool doPause)
+void bol::BrickScript::setPause(bool doPause)
 {
     {
         boost::unique_lock<boost::mutex> lock(pauseMutex);
         pause = doPause;
     }
-    std::cout << __func__ << std::endl;
 
     pauseChanged.notify_all();
+}
+
+bool bol::BrickScript::waitUntilStopped(int timeOut)
+{
+	int tout = timeOut;
+
+	while (!pause)
+	{
+		usleep(1000);
+
+		if (tout-- < 0)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

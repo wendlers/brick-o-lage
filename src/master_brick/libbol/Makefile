@@ -13,7 +13,11 @@ CFLAGS += -I$(TARGET_DIR)/usr/include
 CFLAGS += -I$(TARGET_DIR)/usr/include/python2.7
 
 ARFLAGS  = rcs
-SOURCES  = brickbus.cpp brickport.cpp brick.cpp diobrick.cpp embpy.cpp
+SOURCES += brickbus.cpp
+SOURCES += brickport.cpp 
+SOURCES += brick.cpp 
+SOURCES += diobrick.cpp
+SOURCES += brickscript.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 LIBRARY = libbrick-o-lage.a

@@ -36,7 +36,7 @@ bol::GenericBrick::GenericBrick(BrickBus *brickBus, int slaveAddress)
 	bbus = brickBus;
 	address = slaveAddress;
 
-	priority = 0;
+	priority = 3;
 	currentPriority = 0;
 
 	fwVersion = -1;
@@ -292,12 +292,17 @@ bol::BrickPort& bol::Brick::operator [](const char* name)
 	return *(brick->getPortByName(name));
 }
 
-void bol::Brick::set_port(const char* brickName, const char* portName, const int value)
+bol::BrickPort *bol::Brick::get_port(const char *brickName, const char *portName)
+{
+	return BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName);
+}
+
+void bol::Brick::set_port_value(const char* brickName, const char* portName, const int value)
 {
 	 BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->setValue(value);
 }
 
-int bol::Brick::get_port(const char* brickName, const char* portName)
+int bol::Brick::get_port_value(const char* brickName, const char* portName)
 {
 	 return BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->getValue();
 }

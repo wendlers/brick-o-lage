@@ -53,6 +53,8 @@ public:
 
 	bool isRunning();
 
+	void callback();
+
 private:
 
 	void execThreadFunction();

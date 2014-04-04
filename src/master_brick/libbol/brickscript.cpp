@@ -22,6 +22,83 @@
 #include "brick.hpp"
 #include "brickscript.hpp"
 
+namespace bol
+{
+
+typedef std::map<boost::python::object, bol::BrickPort::BrickPortSigCon> PyObjBrickPortMap;
+
+/**
+ * Wrapper for BrickPortEvents
+ */
+class BrickPortEventCallback
+{
+private:
+
+	static PyObjBrickPortMap callbacks;
+
+public:
+
+	static void clearCallbacks()
+	{
+		PyObjBrickPortMap::iterator it;
+
+		for(it = callbacks.begin(); it != callbacks.end(); ++it)
+		{
+			BrickPort::BrickPortSigCon c = it->second;
+			c.disconnect();
+		}
+
+		callbacks.clear();
+	}
+
+	static void addCallback(const char *brickName, const char *portName, boost::python::object callback)
+	{
+		BrickPort *p = bol::Brick::get_port(brickName, portName);
+		callbacks[callback] = p->connect(&BrickPortEventCallback::onUpdate);
+	}
+
+	static void onUpdate(BrickPort &p)
+	{
+		PyObjBrickPortMap::iterator it;
+
+		for(it = callbacks.begin(); it != callbacks.end(); ++it)
+		{
+			boost::python::object callback = it->first;
+
+			try
+			{
+				callback(p.getValue());
+			}
+			catch(boost::python::error_already_set)
+			{
+				std::cout << std::endl;
+				std::cout << "**********************************" << std::endl;
+				std::cout << "** BOL callback interrupted       " << std::endl;
+				std::cout << "**********************************" << std::endl;
+				std::cout << std::endl;
+
+				PyErr_Print();
+			}
+		}
+	}
+};
+
+PyObjBrickPortMap BrickPortEventCallback::callbacks;
+
+void msleep(int value)
+{
+	int sec = value / 1000;
+	int usec = (value - (sec * 1000)) * 1000;
+
+	if(sec > 0)
+	{
+		sleep(value);
+	}
+	usleep(usec);
+}
+
+}
+
 struct BrickType_to_python_str
 {
     static PyObject* convert(bol::BrickType const& t)
@@ -34,6 +111,15 @@ struct BrickType_to_python_str
       }
 };
 
+bool isCbReged = false;
+boost::python::object pycb;
+
+void register_callback(boost::python::object cb)
+{
+      pycb = cb;
+      isCbReged = true;
+}
+
 BOOST_PYTHON_MODULE(bol)
 {
 	boost::python::class_<bol::Brick>("Brick", boost::python::init<const char *>())
@@ -44,13 +130,16 @@ BOOST_PYTHON_MODULE(bol)
 		.def("getFirmwareVersion", &bol::Brick::getFirmwareVersion)
 		.def("reset", &bol::Brick::reset)
 		.def("describe", &bol::Brick::describe);
-		boost::python::def("set_port", &bol::Brick::set_port);
-		boost::python::def("get_port", &bol::Brick::get_port);
+		boost::python::def("set_port", &bol::Brick::set_port_value);
+		boost::python::def("get_port", &bol::Brick::get_port_value);
 		boost::python::def("sleep", &::sleep);
 		boost::python::def("usleep", &::usleep);
+		boost::python::def("msleep", &bol::msleep);
+		boost::python::def("addCallback", &bol::BrickPortEventCallback::addCallback);
 
 		boost::python::to_python_converter<bol::BrickType, BrickType_to_python_str>();
 }
+
 
 bol::BrickScript::BrickScript()
 {
@@ -122,6 +211,11 @@ void bol::BrickScript::stop()
 {
 	if(execThread != NULL && Py_IsInitialized())
 	{
+		if(isCbReged)
+		{
+			isCbReged = false;
+		}
+
 		PyErr_SetNone(PyExc_KeyboardInterrupt);
 	}
 }
@@ -157,11 +251,12 @@ void bol::BrickScript::execThreadFunction()
 
 	initbol();
 
-	PyRun_SimpleString("import bol");
+	// PyRun_SimpleString("import bol");
 
-	// exec python
-	// boost::python::object main_module = boost::python::import("__main__");
-	// boost::python::object main_namespace = main_module.attr("__dict__");
+	boost::python::object main_module = boost::python::import("__main__");
+	boost::python::object main_namespace = main_module.attr("__dict__");
+	boost::python::dict local_namespace;
+	boost::python::object result;
 
 	std::cout << std::endl;
 	std::cout << "**********************************" << std::endl;
@@ -181,12 +276,16 @@ void bol::BrickScript::execThreadFunction()
 			std::cout << "**********************************" << std::endl;
 			std::cout << std::endl;
 
-			PyRun_SimpleString(currentProg.c_str());
-			// boost::python::object ignored = boost::python::exec(currentProg.c_str(), main_namespace);
+			local_namespace["__builtins__"] = main_namespace["__builtins__"];
+
+			result = boost::python::exec("import bol\n", local_namespace);
+			result = boost::python::exec(currentProg.c_str(), local_namespace);
+
+			local_namespace.clear();
 
 			std::cout << std::endl;
 			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL script execution ended     " << std::endl;
+			std::cout << "** BOL script ended normally      " << std::endl;
 			std::cout << "**********************************" << std::endl;
 			std::cout << std::endl;
 		}
@@ -194,12 +293,14 @@ void bol::BrickScript::execThreadFunction()
 		{
 			std::cout << std::endl;
 			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL script execution failed    " << std::endl;
+			std::cout << "** BOL script interrupted         " << std::endl;
 			std::cout << "**********************************" << std::endl;
 			std::cout << std::endl;
 
-			// PyErr_Print();
+			PyErr_Print();
 		}
+
+		BrickPortEventCallback::clearCallbacks();
 
 		setPause(true);
 	}
@@ -235,6 +336,14 @@ void bol::BrickScript::setPause(bool doPause)
     }
 
     pauseChanged.notify_all();
+}
+
+void bol::BrickScript::callback()
+{
+	if(isCbReged)
+	{
+		pycb();
+	}
 }
 
 bool bol::BrickScript::waitUntilStopped(int timeOut)

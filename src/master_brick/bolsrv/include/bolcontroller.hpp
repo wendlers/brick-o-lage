@@ -43,6 +43,8 @@ public:
 	void getStop(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
 	void setup();
+
+	bol::BrickScript *getScriptEngine();
 };
 
 }

@@ -78,9 +78,11 @@ public:
 
 	BrickPort &operator[](const char *name);
 
-	static void set_port(const char *brickName, const char *portName, const int value);
+	static BrickPort *get_port(const char *brickName, const char *portName);
 
-	static int get_port(const char *brickName, const char *portName);
+	static void set_port_value(const char *brickName, const char *portName, const int value);
+
+	static int get_port_value(const char *brickName, const char *portName);
 };
 
 class GenericBrick

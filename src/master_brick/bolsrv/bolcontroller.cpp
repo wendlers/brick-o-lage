@@ -50,3 +50,8 @@ void bol::srv::BolController::setup()
 		addRoute("GET" , "/scriptengine/stop", BolController, getStop);
 	}
 }
+
+bol::BrickScript *bol::srv::BolController::getScriptEngine()
+{
+	return &bs;
+}

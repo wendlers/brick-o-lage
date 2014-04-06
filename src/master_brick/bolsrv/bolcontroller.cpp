@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <dirent.h>
+#include <fstream>
 #include "bolcontroller.hpp"
 
 void bol::srv::BolController::postRun(Mongoose::Request& request, Mongoose::StreamResponse& response)
@@ -41,6 +43,72 @@ void bol::srv::BolController::getStop(Mongoose::Request& request, Mongoose::Stre
 	response << "{\"isRunning\": " << bs.isRunning() << "}";
 }
 
+void bol::srv::BolController::postUserData(Mongoose::Request &request, Mongoose::StreamResponse &response)
+{
+	std::string name 	= request.get("userDataName", "(unknown)");
+	std::string content = request.get("userDataContent", "(unknown)");
+
+	std::string  filePath = "/root/html/userdata/" + name;
+
+	std::ofstream outfile(filePath, std::ofstream::binary);
+	outfile << content;
+	outfile.close();
+}
+
+void bol::srv::BolController::getUserData(Mongoose::Request &request, Mongoose::StreamResponse &response)
+{
+	std::string name 	  = request.get("userDataName", "(unknown)");
+	std::string  filePath = "/root/html/userdata/" + name;
+
+	// if no name is given, send back list of available files
+	if(name == "(unknown)")
+	{
+		DIR *dir;
+		struct dirent *ent;
+		bool first = true;
+
+		if ((dir = opendir("/root/html/userdata")) != NULL)
+		{
+			response << "[";
+
+			while ((ent = readdir(dir)) != NULL)
+			{
+				if (ent->d_name[0] != '.')
+				{
+					if(!first)
+					{
+						response << ", ";
+					}
+					response << "\"" << ent->d_name << "\"";
+					first = false;
+				}
+			}
+
+			response << "]";
+
+			closedir(dir);
+		}
+
+		return;
+	}
+
+	// if name is given, try loading data from file
+	std::cout << "loading user data: " << name << std::endl;
+
+	std::ifstream infile(filePath, std::ifstream::binary);
+
+	if(infile.is_open())
+	{
+		std::string line;
+		while(std::getline(infile, line))
+		{
+			response << line;
+		}
+	}
+
+	infile.close();
+}
+
 void bol::srv::BolController::setup()
 {
 	{
@@ -48,6 +116,8 @@ void bol::srv::BolController::setup()
 		addRoute("POST", "/scriptengine/run", BolController, postRun);
 		addRoute("GET" , "/scriptengine/run", BolController, getRun);
 		addRoute("GET" , "/scriptengine/stop", BolController, getStop);
+		addRoute("POST", "/userdata", BolController, postUserData);
+		addRoute("GET", "/userdata", BolController, getUserData);
 	}
 }
 

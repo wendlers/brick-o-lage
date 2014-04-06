@@ -24,12 +24,18 @@
 <body>
   <h1>Brick-o-Lage</h1>
 
-  <div id="blocklyDiv" style="height: 640px; width: 1000px;"></div>
-  <form id="code">
-    <textarea id="pythonCode" name="pythonCode" style="height: 200px; width: 600px;"></textarea>
-  </form>
   <button type="button" onClick="runScript()">Run</button>
   <button type="button" onClick="stopScript()">Stop</button>
+  <select id="workspaceFiles" size="1">
+    <option>Unknown</option>
+  </select>   
+  <button type="button" onClick="loadWorkspace()">Load</button>
+  <input id="saveToName" type="text" value="Unknown.xml"/> 
+  <button type="button" onClick="saveWorkspace()">Save</button>
+
+  <div id="blocklyDiv" style="height: 640px; width: 1000px;"></div>
+  <!-- textarea id="pythonCode" name="pythonCode" style="height: 200px; width: 600px;"></textarea -->
+
 
   <xml id="toolbox" style="display: none">
     <block type="controls_if"></block>
@@ -49,19 +55,73 @@
   <script>
 	function runScript()
 	{
+		var code = Blockly.Python.workspaceToCode();
+	
 		req = new XMLHttpRequest();
 		req.open("POST", "/scriptengine/run", false);
 		req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		req.setRequestHeader('Connection', 'close');
-		req.send('pythonCode=' + document.getElementById('pythonCode').value);
+		req.send('pythonCode=' + code);
 	}
 
 	function stopScript()
 	{
 		req = new XMLHttpRequest();                                     
-	        req.open("GET", "/scriptengine/stop", false); 
-	        req.send();
+	    req.open("GET", "/scriptengine/stop", false); 
+	    req.send();
+	}
+	
+	function loadWorkspace()
+	{
+		var name = document.getElementById('workspaceFiles').value;
+	
+		req = new XMLHttpRequest();
+		req.open("GET", "/userdata?userDataName=" + name, false);
+
+		req.send();
+		
+	    var xml_text = req.responseText;
+	    var xml = Blockly.Xml.textToDom(xml_text);
+	    Blockly.mainWorkspace.clear();
+  		Blockly.Xml.domToWorkspace(Blockly.mainWorkspace, xml);
+  		
+  		document.getElementById('saveToName').value = name;
+	}
+	
+	function listWorkspaceFiles()
+	{
+		req = new XMLHttpRequest();
+		req.open("GET", "/userdata?", false);
+
+		req.send();
+		
+	    var json_text = req.responseText;
+	    var files = JSON.parse(json_text);
+		var fileList = "";
+		
+		for (var i = 0; i < files.length; i++) 
+		{
+			fileList += "<option>" + files[i] + "</option>";
+		}
+		document.getElementById('workspaceFiles').innerHTML = fileList;	
+	}
+	
+	function saveWorkspace()
+	{
+		req = new XMLHttpRequest();
+		req.open("POST", "/userdata", false);
+		req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		req.setRequestHeader('Connection', 'close');
+		
+  		var xml = Blockly.Xml.workspaceToDom(Blockly.mainWorkspace);
+  		var xml_text = Blockly.Xml.domToText(xml);
+  		var name = document.getElementById('saveToName').value;
+  		
+		req.send('userDataName=' + name + '&userDataContent=' + xml_text);
+		
+		listWorkspaceFiles();
 	}
 	
     Blockly.inject(document.getElementById('blocklyDiv'),
@@ -72,6 +132,7 @@
     	document.getElementById('pythonCode').value = code;
   	}
   	Blockly.addChangeListener(updatePython);
+  	listWorkspaceFiles();
   </script>
 
 </body>

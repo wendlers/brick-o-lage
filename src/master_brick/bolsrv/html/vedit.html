@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Brick-o-Lage: Visual Editor</title>
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      background-color: #fff;
+      font-family: sans-serif;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    h1 {
+      font-weight: normal;
+      font-size: 140%;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border-style: solid;
+      border-color: #ddd;
+      border-width: 0 1px 1px 0;
+    }
+    div#title {
+    	margin-top: 10px;
+    	margin-bottom: 10px;
+    }
+    button#runButton {
+    	background-color: #00ff00;
+    }
+     button#stopButton {
+    	background-color: #ff0000;
+    }
+  </style>
+  <script>
+	function togVis(idElement, visible) 
+	{
+	   var e 	 = document.getElementById(idElement);
+	
+	   if(visible)
+	    {
+	      e.style.display = 'inline';
+	    }
+	   else
+	   {
+	      e.style.display = 'none';
+	   }
+	}
+	
+	function runScript()
+	{
+		var code = Blockly.Python.workspaceToCode();
+	
+		req = new XMLHttpRequest();
+		req.open("POST", "/scriptengine/run", false);
+		req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		req.setRequestHeader('Connection', 'close');
+		req.send('pythonCode=' + code);
+	}
+
+	function stopScript()
+	{
+		req = new XMLHttpRequest();                                     
+	    req.open("GET", "/scriptengine/stop", false); 
+	    req.send();
+	}
+	
+	function loadWorkspace()
+	{
+		var name = document.getElementById('workspaceFiles').value;
+	
+		req = new XMLHttpRequest();
+		req.open("GET", "/userdata?userDataName=" + name, false);
+
+		req.send();
+		
+	    var xml_text = req.responseText;
+	    var xml = Blockly.Xml.textToDom(xml_text);
+	    Blockly.mainWorkspace.clear();
+  		Blockly.Xml.domToWorkspace(Blockly.mainWorkspace, xml);
+  		
+  		document.getElementById('saveToName').value = name;
+	}
+	
+	function listWorkspaceFiles()
+	{
+		req = new XMLHttpRequest();
+		req.open("GET", "/userdata?", false);
+
+		req.send();
+		
+	    var json_text = req.responseText;
+	    var files = JSON.parse(json_text);
+		var fileList = "";
+		
+		for (var i = 0; i < files.length; i++) 
+		{
+			fileList += "<option>" + files[i] + "</option>";
+		}
+		document.getElementById('workspaceFiles').innerHTML = fileList;	
+	}
+	
+	function saveWorkspace()
+	{
+		req = new XMLHttpRequest();
+		req.open("POST", "/userdata", false);
+		req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+		req.setRequestHeader('Connection', 'close');
+		
+  		var xml = Blockly.Xml.workspaceToDom(Blockly.mainWorkspace);
+  		var xml_text = Blockly.Xml.domToText(xml);
+  		var name = document.getElementById('saveToName').value;
+  		
+		req.send('userDataName=' + name + '&userDataContent=' + xml_text);
+		
+		listWorkspaceFiles();
+	}	
+	
+	function updateRunState()
+	{
+		req = new XMLHttpRequest();
+		
+		req.onreadystatechange=function()
+		{
+			if (req.readyState==4 && req.status==200)
+			{
+			    var json_text = req.responseText;
+			    var state = JSON.parse(json_text);
+			    
+			    if(state.isRunning == 1)
+			    {
+			    	togVis('runButton', false);
+			    	togVis('stopButton', true);
+			    }
+			    else
+			    {
+			    	togVis('runButton', true);
+			    	togVis('stopButton', false);
+			    }
+    		}
+  		}
+  
+		req.open("GET", "/scriptengine/run", true);
+		req.send();
+	}
+  </script>
+</head>
+<body>
+  <table width="100%" height="99%">
+    <tr>
+      <td>
+        <div id="title">Brick-o-Lage: Visual Editor</div>
+      	<div id="menu" style="width: 100%; border: 1px solid #ddd;">
+      		<button id="runButton" type="button" onClick="runScript()">Run</button>
+  			<button id="stopButton" type="button" onClick="stopScript()">Stop</button>
+  			<select id="workspaceFiles" size="1"></select>   
+  			<button type="button" onClick="loadWorkspace()">Load</button>
+  			<input id="saveToName" type="text" value="Unknown.xml"/> 
+  			<button type="button" onClick="saveWorkspace()">Save</button>
+  			<button type="button" onClick="saveWorkspace()">Delete</button>
+  			<button type="button" onClick="Blockly.mainWorkspace.clear()">Clear</button>
+  			<button type="button" onClick="window.location='./index.html'">Exit</button>
+      	</div>      	
+      </td>
+    </tr>
+    <tr>
+      <td height="99%">
+        <script>
+          function blocklyLoaded(blockly) {
+            // Called once Blockly is fully loaded.
+            window.Blockly = blockly;
+          }
+        </script>
+        <iframe src="blockly_frame.html" scrolling="no"></iframe>
+      </td>
+    </tr>
+  </table>
+  <script>
+  	togVis("stopButton");
+  	listWorkspaceFiles();
+  	setInterval(function(){updateRunState()}, 800);
+  </script>
+</body>
+</html>

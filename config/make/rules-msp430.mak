@@ -42,6 +42,7 @@ images: $(BINARY).images
 
 %.elf: $(OBJS) $(LDSCRIPT)
 	@#printf "  LD      $(subst $(shell pwd)/,,$(@))\n"
+	@mkdir -p $(BINDIR)
 	$(LD) $(OBJS) $(CFLAGS) $(LDFLAGS) -o $(*).elf && cp $(*).elf $(BINDIR)/$(TARGET).elf
 
 %.o: %.c Makefile

@@ -148,6 +148,13 @@
 		req.open("GET", "/scriptengine/run", true);
 		req.send();
 	}
+	
+	function showCode()
+	{
+		var code = Blockly.Python.workspaceToCode();
+	
+		alert(code);
+	}
   </script>
 </head>
 <body>
@@ -165,6 +172,7 @@
   			<button type="button" onClick="saveWorkspace()">Delete</button>
   			<button type="button" onClick="Blockly.mainWorkspace.clear()">Clear</button>
   			<button type="button" onClick="window.location='./index.html'">Exit</button>
+  			<button type="button" onClick="showCode()">Code</button>
       	</div>      	
       </td>
     </tr>

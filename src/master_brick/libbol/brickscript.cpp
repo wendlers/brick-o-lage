@@ -25,7 +25,33 @@
 namespace bol
 {
 
-typedef std::map<boost::python::object, bol::BrickPort::BrickPortSigCon> PyObjBrickPortMap;
+class BrickPortEventCallback;
+
+class PyCallbackHandle
+{
+private:
+
+	bol::BrickPort::BrickPortSigCon con;
+	std::string brick;
+	std::string port;
+
+	PyCallbackHandle(bol::BrickPort::BrickPortSigCon sigCon, const char *brickName, const char *portName)
+	{
+		con 	= sigCon;
+		brick   = std::string(brickName);
+		port 	= std::string(portName);
+	}
+
+public:
+
+	PyCallbackHandle()
+	{
+	}
+
+	friend class BrickPortEventCallback;
+};
+
+typedef std::map<boost::python::object, bol::PyCallbackHandle> PyObjBrickPortMap;
 
 /**
  * Wrapper for BrickPortEvents
@@ -44,7 +70,7 @@ public:
 
 		for(it = callbacks.begin(); it != callbacks.end(); ++it)
 		{
-			BrickPort::BrickPortSigCon c = it->second;
+			BrickPort::BrickPortSigCon c = it->second.con;
 			c.disconnect();
 		}
 
@@ -54,10 +80,46 @@ public:
 	static void addCallback(const char *brickName, const char *portName, boost::python::object callback)
 	{
 		BrickPort *p = bol::Brick::get_port(brickName, portName);
-		callbacks[callback] = p->connect(&BrickPortEventCallback::onUpdate);
+
+		if(strcmp(bol::Brick::DIO1, brickName) == 0)
+		{
+			callbacks[callback] = PyCallbackHandle(p->connect(&BrickPortEventCallback::onUpdateDIO1), brickName, portName);
+		}
+		else if(strcmp(bol::Brick::DIO2, brickName) == 0)
+		{
+			callbacks[callback] = PyCallbackHandle(p->connect(&BrickPortEventCallback::onUpdateDIO2), brickName, portName);
+		}
+		else if(strcmp(bol::Brick::DIO3, brickName) == 0)
+		{
+			callbacks[callback] = PyCallbackHandle(p->connect(&BrickPortEventCallback::onUpdateDIO3), brickName, portName);
+		}
+		else if(strcmp(bol::Brick::DIO4, brickName) == 0)
+		{
+			callbacks[callback] = PyCallbackHandle(p->connect(&BrickPortEventCallback::onUpdateDIO4), brickName, portName);
+		}
 	}
 
-	static void onUpdate(BrickPort &p)
+	static void onUpdateDIO1(BrickPort &p)
+	{
+		onUpdate(bol::Brick::DIO1, p);
+	}
+
+	static void onUpdateDIO2(BrickPort &p)
+	{
+		onUpdate(bol::Brick::DIO2, p);
+	}
+
+	static void onUpdateDIO3(BrickPort &p)
+	{
+		onUpdate(bol::Brick::DIO3, p);
+	}
+
+	static void onUpdateDIO4(BrickPort &p)
+	{
+		onUpdate(bol::Brick::DIO4, p);
+	}
+
+	static void onUpdate(std::string brickName, BrickPort &p)
 	{
 		PyObjBrickPortMap::iterator it;
 
@@ -67,7 +129,10 @@ public:
 
 			try
 			{
-				callback(p.getValue());
+				if(brickName == it->second.brick && p.getName() == it->second.port)
+				{
+					callback(p.getValue());
+				}
 			}
 			catch(boost::python::error_already_set)
 			{

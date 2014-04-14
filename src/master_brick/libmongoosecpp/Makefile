@@ -31,7 +31,7 @@ SOURCES += $(MONGDIR)/mongoose/WebController.cpp
 SOURCES += $(MONGDIR)/mongoose/WebSocket.cpp
 SOURCES += $(MONGDIR)/mongoose/WebSockets.cpp
  
-OBJECTS = $(SOURCES:.cpp=.o) $(SOURCES:.c=.o)  
+OBJECTS = $(SOURCES:.cpp=.o) $(SOURCES:.c=.o)
 LIBRARY	= libmongoosecpp.a
 
 all: $(SOURCES) $(LIBRARY) copy-includes
@@ -52,3 +52,4 @@ clean:
 	@rm -f $(MONGDIR)/*.o
 	@rm -f $(MONGDIR)/mongoose/*.o
 	@rm -f $(LIBRARY)
+	@rm -fr include

@@ -23,7 +23,9 @@
 #include "i2c.h"
 
 /* I2C slave address (7-bit) */
+#ifndef I2C_ADDR
 #define I2C_ADDR	0x48
+#endif
 
 void i2c_cmd_init();
 

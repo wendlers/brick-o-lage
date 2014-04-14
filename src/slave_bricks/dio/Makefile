@@ -15,6 +15,11 @@ LIBS	+= -li2c -lserial -lconio
 LIBS	+= -li2c 
 TARGET   = brick-o-lage_dio_$(BINARY)
 
+ifneq ($(I2C_ADDR),)
+CFLAGS += -DI2C_ADDR=$(I2C_ADDR)
+endif
+
+
 include $(TOPDIR)/config/make/rules-msp430.mak
 
 flash:

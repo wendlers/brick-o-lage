@@ -1,15 +1,30 @@
+#####################################################################
+# Toplevel makefile for the Brick-o-Lage project 
+#####################################################################
+
+all: build
+
+world: init build-carambola build
 
 init: init-submodules init-carambola
 
-build: build-carambola build-msp430 build-bol
+build: build-msp430 build-bol
 
 clean: clean-msp430 clean-bol
 
 distclean: clean clean-carambola 
 
+#####################################################################
+# Prepare GIT submodules 
+#####################################################################
+
 init-submodules:
 	@git submodule init
 	@git submodule update	
+
+#####################################################################
+# Carambola (OpenWrt)
+#####################################################################
 
 init-carambola:	init-carambola-feeds init-carambola-config
 
@@ -24,8 +39,12 @@ init-carambola-config:
 build-carambola:
 	@make -C carambola
 
-build-carambola-test:
-	@make -C src/test/msp430-i2cslave/master 	
+clean-carambola: clean-carambola-test
+	@make -C carambola distclean
+
+#####################################################################
+# MSP430
+#####################################################################
 
 build-msp430: build-msp430-libemb build-msp430-diofw
 
@@ -35,8 +54,17 @@ build-msp430-libemb:
 build-msp430-diofw:
 	@make -C src/slave_bricks/dio
 
-build-msp430-test:
-	@make -C src/test/msp430-i2cslave/slave
+clean-msp430: clean-msp430-libemb clean-msp430-diofw
+
+clean-msp430-libemb:
+	@make -C libemb TARCH=MSP430 clean
+
+clean-msp430-diofw:
+	@make -C src/slave_bricks/dio clean
+
+#####################################################################
+# Brick-o-Lage (on master) 
+#####################################################################
 
 build-bol: build-libbol build-libmongoosecpp build-bolsrv build-bolcmd 
 
@@ -52,23 +80,6 @@ build-bolsrv:
 build-bolcmd:
 	@make -C src/master_brick/bolcmd
 
-clean-carambola: clean-carambola-test
-	@make -C carambola distclean
-
-clean-carambola-test:
-	@make -C src/test/msp430-i2cslave/master clean
-
-clean-msp430: clean-msp430-test clean-msp430-libemb clean-msp430-diofw
-
-clean-msp430-libemb:
-	@make -C libemb TARCH=MSP430 clean
-
-clean-msp430-diofw:
-	@make -C src/slave_bricks/dio clean
-
-clean-msp430-test:
-	@make -C src/test/msp430-i2cslave/slave clean
-
 clean-bol: clean-libbol clean-bolsrv clean-bolcmd clean-libmongoosecpp
 
 clean-libbol:
@@ -82,5 +93,3 @@ clean-bolsrv:
 
 clean-bolcmd:
 	@make -C src/master_brick/bolcmd clean
-
-

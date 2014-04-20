@@ -24,16 +24,16 @@
 
 /* I2C slave address (7-bit) */
 #ifndef I2C_ADDR
-#define I2C_ADDR	0x48
+#define I2C_ADDR	0x4C
 #endif
 
 void i2c_cmd_init();
 
 void cmd_reset(i2c_cmd_args *args);
 
-void cmd_set_pout(i2c_cmd_args *args);
+void cmd_set_speed(i2c_cmd_args *args);
 
-void cmd_get_pin(i2c_cmd_args *args);
+void cmd_set_dir(i2c_cmd_args *args);
 
 void cmd_get_fwtype(i2c_cmd_args *args);
 

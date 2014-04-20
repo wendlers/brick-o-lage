@@ -1,5 +1,5 @@
 /*
- * This file is part of the mps430-ioexp project.
+ * This file is part of the libemb project.
  *
  * Copyright (C) 2011 Stefan Wendler <sw@kaltpost.de>
  *
@@ -17,26 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CMD_H__
-#define __CMD_H__
+/**
+ *
+ * NOTE: 100k extrnal pull-ups are needed on SDA/SDC.
+ */
 
-#include "i2c.h"
+#include <msp430.h>
+#include "cmd.h"
 
-/* I2C slave address (7-bit) */
-#ifndef I2C_ADDR
-#define I2C_ADDR	0x48
-#endif
+void clock_init(void)
+{
+    WDTCTL = WDTPW + WDTHOLD;
+    BCSCTL1 = CALBC1_16MHZ;
+    DCOCTL  = CALDCO_16MHZ;
 
-void i2c_cmd_init();
+    __bis_SR_register(GIE);
+}
 
-void cmd_reset(i2c_cmd_args *args);
+int main(void)
+{
+	clock_init();
 
-void cmd_set_pout(i2c_cmd_args *args);
+	i2c_cmd_init();
 
-void cmd_get_pin(i2c_cmd_args *args);
+	while (1) {
+		__asm__("nop");
+	}
 
-void cmd_get_fwtype(i2c_cmd_args *args);
-
-void cmd_get_fwversion(i2c_cmd_args *args);
-
-#endif
+	return 0;
+}

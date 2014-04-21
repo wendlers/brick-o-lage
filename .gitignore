@@ -1,0 +1,9 @@
+.settings
+.cproject
+.project
+*.elf
+*.o
+*.bin
+*.hex
+*.list
+*.srec

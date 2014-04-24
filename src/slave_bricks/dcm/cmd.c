@@ -1,7 +1,7 @@
 /*
- * This file is part of the mps430-ioexp project.
+ * This file is part of the Brick-o-Lage project.
  *
- * Copyright (C) 2011 Stefan Wendler <sw@kaltpost.de>
+ * Copyright (C) 2014 Stefan Wendler <sw@kaltpost.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #include <legacymsp430.h>
 
 /**
+ * Pin connection for this brick is:
+ *
  * RX 		- P1.1
  * TX 		- P1.2
  *
@@ -35,6 +37,7 @@
  * ACT_LED 	- P2.4
  */
 
+// if thie is defined, debug information will be printed on serial port
 #define SERIAL_DEBUG
 
 #ifdef SERIAL_DEBUG
@@ -45,11 +48,20 @@
 #include "cmd.h"
 
 /* Commands */
-#define CMD_SET_SPEED   0x01
-#define CMD_SET_DIR     0x02
-#define CMD_RESET       0xA0
-#define CMD_FW_TYPE		0xF0
-#define CMD_FW_VERSION	0xF1
+#define CMD_SET_SPEED   0x01				// set speed (DC %) for the motor channels
+#define CMD_SET_DIR     0x02				// set motor direction (STOP, CW or CCW)
+#define CMD_RESET       0xA0				// reset the brick
+#define CMD_FW_TYPE		0xF0				// get firmware-type
+#define CMD_FW_VERSION	0xF1				// get firmware-version
+
+/* PWM Settings */
+#define PWM_PERIOD		8000				// cycles for one period (~ 2kHz)
+#define PWM_DCPERCENT	(PWM_PERIOD / 100)	// cycles for one percent DC
+#define	PWM_CCRD		PWM_DCPERCENT		// delta to add to CCR0 reg.
+
+#define DC_DISABLE		0					// no DC for this PWM
+#define DC_HIGH			1					// DC HIGH phase
+#define DC_LOW			2					// DC LOW phase
 
 static i2c_cmds cmds = {
      .count = 5,
@@ -84,34 +96,45 @@ static i2c_cmds cmds = {
 
 typedef struct
 {
-	int  dc1a;
-	int  dc1a_cur;
-	unsigned char dc1a_act;
+	// M1A
+	int  dc1a;								// targeted duty cycle
+	int  dc1a_cur;							// current duty cycle
+	unsigned char dc1a_act;					// state: High, Low, Deactivated
+
+	// M1B
 	int  dc1b;
 	int  dc1b_cur;
 	unsigned char dc1b_act;
+
+	// M2A
 	int  dc2a;
 	int  dc2a_cur;
 	unsigned char dc2a_act;
+
+	// M2B
 	int  dc2b;
 	int  dc2b_cur;
 	unsigned char dc2b_act;
+
 } pwm_info;
 
 static pwm_info pwm =
 {
-	.dc1a  		= 16000,
+	.dc1a  		= PWM_PERIOD,				// 100% DC
 	.dc1a_cur	= 0,
-	.dc1a_act 	= 0,
-	.dc1b  		= 16000,
+	.dc1a_act 	= DC_DISABLE,
+
+	.dc1b  		= PWM_PERIOD,
 	.dc1a_cur	= 0,
-	.dc1b_act 	= 0,
-	.dc2a  		= 16000,
+	.dc1b_act 	= DC_DISABLE,
+
+	.dc2a  		= PWM_PERIOD,
 	.dc1a_cur	= 0,
-	.dc2a_act 	= 0,
-	.dc2b  		= 16000,
+	.dc2a_act 	= DC_DISABLE,
+
+	.dc2b  		= PWM_PERIOD,
 	.dc1a_cur	= 0,
-	.dc2b_act 	= 0,
+	.dc2b_act 	= DC_DISABLE,
 };
 
 void act()
@@ -137,45 +160,42 @@ void cmd_set_speed(i2c_cmd_args *args)
 	//
 	// speed: 0b0sssssss
 	// 	s - speed, 0..100%
-	//
-	// addr: 0b0000ddmm
-	//	m - motor: 00 - ignored, 01 - M1, 10 - M2
-	//	d - 00/11 - ignored, 01 - cw, 10 ccw
+	// addr: 0b0000abAB
+	//	a - if 1, set speed for speed M1A (CW)
+	//	b - if 1, set speed for speed M1B (CCW)
+	//	A - if 1, set speed for speed M2A (CW)
+	//	B - if 1, set speed for speed M2B (CCW)
 
 	// speed
 	unsigned char s = (args->args[0] & 0b01111111);
 
 	// addr
-	unsigned char m = (args->args[1] & 0b00000011);
-	unsigned char d = (args->args[1] & 0b00001100) >> 2;
+	unsigned char B = (args->args[1] & 0b00000001);
+	unsigned char A = (args->args[1] & 0b00000010) >> 1;
+	unsigned char b = (args->args[1] & 0b00000100) >> 2;
+	unsigned char a = (args->args[1] & 0b00001000) >> 3;
 
-	if(m == 0x01)
+	if(a)
 	{
-		if(d == 0x01)
-		{
-			pwm.dc1a = 160 * s;
-		}
-		else if(d == 0x02)
-		{
-			pwm.dc1b = 160 * s;
-		}
+		pwm.dc1a = PWM_DCPERCENT * s;
 	}
-	else if(m == 0x02)
+	if(b)
 	{
-		if(d == 0x01)
-		{
-			pwm.dc2a = 160 * s;
-		}
-		else if(d == 0x02)
-		{
-			pwm.dc2b = 160 * s;
-		}
+		pwm.dc1b = PWM_DCPERCENT * s;
+	}
+	if(A)
+	{
+		pwm.dc2a = PWM_DCPERCENT * s;
+	}
+	if(B)
+	{
+		pwm.dc2b = PWM_DCPERCENT * s;
 	}
 
 	i2cslave_cmdproc_clrres();
 
 #ifdef SERIAL_DEBUG
-	cio_printf("%s::s=%i;m=%i;d=%i\n\r", __func__, s, m, d);
+	cio_printf("%s::s=%i;a=%i;b=%i;A=%i;B=%i\n\r", __func__, s, a, b, A, B);
 #endif
 }
 
@@ -195,8 +215,8 @@ void cmd_set_dir(i2c_cmd_args *args)
 		// stop PWM
 		pwm.dc1a_cur = 0;
 		pwm.dc1b_cur = 0;
-		pwm.dc1a_act = 0;
-		pwm.dc1b_act = 0;
+		pwm.dc1a_act = DC_DISABLE;
+		pwm.dc1b_act = DC_DISABLE;
 
 		// stop motor
 		P2OUT &= 0b11111110;	// disable 1,2EN
@@ -206,16 +226,19 @@ void cmd_set_dir(i2c_cmd_args *args)
 		{
 			case 0b10:
 				P1OUT |= 0b00001000;	// on
-				pwm.dc1b_act = 1;		// start PWM
+				pwm.dc1b_act = DC_HIGH;	// start PWM
 				break;
 			case 0b01:
 				P1OUT |= 0b00000001;	// on
-				pwm.dc1a_act = 1;		// start PWM
+				pwm.dc1a_act = DC_HIGH;	// start PWM
 				break;
 		}
 
-		// restart with new direction
-		P2OUT |= 0b00000001;	// enable 1,2EN
+		if(aa != 0b11)
+		{
+			// restart with new direction if not stopped
+			P2OUT |= 0b00000001;	// enable 1,2EN
+		}
 	}
 
 	if(bb != 0)
@@ -223,8 +246,8 @@ void cmd_set_dir(i2c_cmd_args *args)
 		// stop PWM
 		pwm.dc2a_cur = 0;
 		pwm.dc2b_cur = 0;
-		pwm.dc2a_act = 0;
-		pwm.dc2b_act = 0;
+		pwm.dc2a_act = DC_DISABLE;
+		pwm.dc2b_act = DC_DISABLE;
 
 		// stop motor
 		P2OUT &= 0b11111101;	// disable 3,4EN
@@ -234,16 +257,19 @@ void cmd_set_dir(i2c_cmd_args *args)
 		{
 			case 0b10:
 				P1OUT |= 0b00100000;	// on
-				pwm.dc2b_act = 1;		// start PWM
+				pwm.dc2b_act = DC_HIGH;	// start PWM
 				break;
 			case 0b01:
 				P1OUT |= 0b00010000;	// on
-				pwm.dc2a_act = 1;		// start PWM
+				pwm.dc2a_act = DC_HIGH;	// start PWM
 				break;
 		}
 
-		// restart with new direction
-		P2OUT |= 0b00000010;	// enable 3,4EN
+		if(bb != 0b11)
+		{
+			// restart with new direction if not stopped
+			P2OUT |= 0b00000010;	// enable 3,4EN
+		}
 	}
 
 	i2cslave_cmdproc_clrres();
@@ -262,11 +288,21 @@ void cmd_reset(i2c_cmd_args *args)
 
 	P2OUT &= 0b00100000; // only enable power-led
 
+	// stop PWM M1
+	pwm.dc1a_cur = 0;
+	pwm.dc1b_cur = 0;
+	pwm.dc1a_act = DC_DISABLE;
+	pwm.dc1b_act = DC_DISABLE;
+
+	// stop PWM M2
+	pwm.dc2a_cur = 0;
+	pwm.dc2b_cur = 0;
+	pwm.dc2a_act = DC_DISABLE;
+	pwm.dc2b_act = DC_DISABLE;
+
 	CCTL0 = CCIE;                             // CCR0 interrupt enabled
 
-	// 16MHz = 16.000.000 cycles / sec.
-	// 16.000.000 / 1.000 = 16000 cycles / sec. = 16000 Hz = 16kHz
-	CCR0  = 1000;
+	CCR0  = PWM_CCRD;
 	TACTL = TASSEL_2 + MC_2;                  // SMCLK, contmode
 
 	act();
@@ -280,10 +316,8 @@ void cmd_get_fwtype(i2c_cmd_args *args)
 {
 	act();
 
-	// FIXME: add to global defines
-	// 0x02 = DCM
 	i2cslave_cmdproc_clrres();
-	i2cslave_cmdproc_addres(0x02);
+	i2cslave_cmdproc_addres(FW_TYPE);
 
 #ifdef SERIAL_DEBUG
 	cio_printf("%s\n\r", __func__);
@@ -294,10 +328,8 @@ void cmd_get_fwversion(i2c_cmd_args *args)
 {
 	act();
 
-	// FIXME: add to global defines
-	// current fw-version
 	i2cslave_cmdproc_clrres();
-	i2cslave_cmdproc_addres(0x01);
+	i2cslave_cmdproc_addres(FW_VERSION);
 
 #ifdef SERIAL_DEBUG
 	cio_printf("%s\n\r", __func__);
@@ -309,60 +341,71 @@ interrupt(TIMER0_A0_VECTOR) isr_timer_a(void)
 	/**
 	 * PWM for M1A
 	 */
-	if(pwm.dc1a_act > 0)
+	if(pwm.dc1a_act > DC_DISABLE)
 	{
-		pwm.dc1a_cur += 1000;
+		pwm.dc1a_cur += PWM_CCRD;
 
-		if(pwm.dc1a_act == 1 && pwm.dc1a_cur >= pwm.dc1a)
+		// at the moment the HIGH phase ends, we turn off output and start LOW phase
+		if(pwm.dc1a_act == DC_HIGH && pwm.dc1a_cur >= pwm.dc1a)
 		{
-			P1OUT &= 0b11111110;	// off
-			pwm.dc1a_act = 2;
+			if(pwm.dc1a < PWM_PERIOD)
+			{
+				P1OUT &= 0b11111110;	// off
+			}
+			pwm.dc1a_act = DC_LOW;	// enter LOW phase
 		}
-		else if(pwm.dc1a_act == 2 && pwm.dc1a_cur >= 16000)
+		// at the moment the LOW phase ends, we turn ON output and start HIGH phase
+		// also a new period is started
+		else if(pwm.dc1a_act == DC_LOW && pwm.dc1a_cur >= PWM_PERIOD)
 		{
 			P1OUT |= 0b00000001;	// on
-			pwm.dc1a_act = 1;
-			pwm.dc1a_cur = 0;
+			pwm.dc1a_act = DC_HIGH;	// enter HIGH phase
+			pwm.dc1a_cur = 0;		// start new period
 		}
 	}
 
 	/**
 	 * PWM for M1B
 	 */
-	if(pwm.dc1b_act > 0)
+	if(pwm.dc1b_act > DC_DISABLE)
 	{
-		pwm.dc1b_cur += 1000;
+		pwm.dc1b_cur += PWM_CCRD;
 
-		if(pwm.dc1b_act == 1 && pwm.dc1b_cur >= pwm.dc1b)
+		if(pwm.dc1b_act == DC_HIGH && pwm.dc1b_cur >= pwm.dc1b)
 		{
-			P1OUT &= 0b11110111;	// off
-			pwm.dc1b_act = 2;
+			if(pwm.dc1b < PWM_PERIOD)
+			{
+				P1OUT &= 0b11110111;	// off
+			}
+			pwm.dc1b_act = DC_LOW;
 		}
-		else if(pwm.dc1b_act == 2 && pwm.dc1b_cur >= 16000)
+		else if(pwm.dc1b_act == DC_LOW && pwm.dc1b_cur >= PWM_PERIOD)
 		{
 			P1OUT |= 0b00001000;	// on
-			pwm.dc1b_act = 1;
+			pwm.dc1b_act = DC_HIGH;
 			pwm.dc1b_cur = 0;
 		}
 	}
 
-
 	/**
 	 * PWM for M2A
 	 */
-	if(pwm.dc2a_act > 0)
+	if(pwm.dc2a_act > DC_DISABLE) // && pwm.dc2a < PWM_PERIOD)
 	{
-		pwm.dc2a_cur += 1000;
+		pwm.dc2a_cur += PWM_CCRD;
 
-		if(pwm.dc2a_act == 1 && pwm.dc2a_cur >= pwm.dc2a)
+		if(pwm.dc2a_act == DC_HIGH && pwm.dc2a_cur >= pwm.dc2a)
 		{
-			P1OUT &= 0b11101111;	// off
-			pwm.dc2a_act = 2;
+			if(pwm.dc2a < PWM_PERIOD)
+			{
+				P1OUT &= 0b11101111;	// off
+			}
+			pwm.dc2a_act = DC_LOW;
 		}
-		else if(pwm.dc2a_act == 2 && pwm.dc2a_cur >= 16000)
+		else if(pwm.dc2a_act == DC_LOW && pwm.dc2a_cur >= PWM_PERIOD)
 		{
 			P1OUT |= 0b00010000;	// on
-			pwm.dc2a_act = 1;
+			pwm.dc2a_act = DC_HIGH;
 			pwm.dc2a_cur = 0;
 		}
 	}
@@ -370,23 +413,26 @@ interrupt(TIMER0_A0_VECTOR) isr_timer_a(void)
 	/**
 	 * PWM for M2B
 	 */
-	if(pwm.dc2b_act > 0)
+	if(pwm.dc2b_act > DC_DISABLE) // && pwm.dc2a < PWM_PERIOD)
 	{
-		pwm.dc2b_cur += 1000;
+		pwm.dc2b_cur += PWM_CCRD;
 
-		if(pwm.dc2b_act == 1 && pwm.dc2b_cur >= pwm.dc2b)
+		if(pwm.dc2b_act == DC_HIGH && pwm.dc2b_cur >= pwm.dc2b)
 		{
-			P1OUT &= 0b11011111;	// off
-			pwm.dc2b_act = 2;
+			if(pwm.dc2b < PWM_PERIOD)
+			{
+				P1OUT &= 0b11011111;	// off
+			}
+			pwm.dc2b_act = DC_LOW;
 		}
-		else if(pwm.dc2b_act == 2 && pwm.dc2b_cur >= 16000)
+		else if(pwm.dc2b_act == DC_LOW && pwm.dc2b_cur >= PWM_PERIOD)
 		{
 			P1OUT |= 0b00100000;	// on
-			pwm.dc2b_act = 1;
+			pwm.dc2b_act = DC_HIGH;
 			pwm.dc2b_cur = 0;
 		}
 	}
 
-	CCR0 += 1000;  // Add Offset to CCR0
+	CCR0 += PWM_CCRD;  // Add Offset to CCR0
 }
 

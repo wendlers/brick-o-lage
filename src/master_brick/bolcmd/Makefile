@@ -10,7 +10,19 @@ include $(TOPDIR)/config/make/settings.mak
 CFLAGS 	+= -std=c++0x 
 CFLAGS	+= -I$(TOPDIR)/src/master_brick/libbol/include -I$(TARGET_DIR)/usr/include
 LDFLAGS += -L$(TOPDIR)/src/master_brick/libbol -L$(TARGET_DIR)/usr/lib
-LIBS	+= -lbrick-o-lage -lboost_thread -lboost_chrono -lboost_system -lboost_signals -lpthread
+
+LIBS	+= -lbrick-o-lage
+LIBS	+= -lboost_thread
+LIBS	+= -lboost_chrono
+LIBS	+= -lboost_system
+LIBS	+= -lboost_signals
+LIBS	+= -lboost_program_options
+LIBS	+= -lboost_python
+LIBS	+= -lpthread
+LIBS	+= -lpython2.7
+LIBS	+= -lutil
+LIBS	+= -ldl
+LIBS	+= -lz
 
 SOURCES=main.cpp
 

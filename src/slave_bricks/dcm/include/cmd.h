@@ -1,7 +1,7 @@
 /*
- * This file is part of the mps430-ioexp project.
+ * This file is part of the Brick-o-Lage project.
  *
- * Copyright (C) 2011 Stefan Wendler <sw@kaltpost.de>
+ * Copyright (C) 2014 Stefan Wendler <sw@kaltpost.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,10 @@
 #ifndef I2C_ADDR
 #define I2C_ADDR	0x4C
 #endif
+
+/* Brick information */
+#define FW_TYPE		0x02		// FW-Type (DCM)
+#define FW_VERSION	0x01		// FW-Version
 
 void i2c_cmd_init();
 

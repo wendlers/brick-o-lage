@@ -61,6 +61,7 @@ clean-msp430-libemb:
 
 clean-msp430-diofw:
 	@make -C src/slave_bricks/dio clean
+	@rm -f bin/msp430/*.elf
 
 #####################################################################
 # Brick-o-Lage (on master) 

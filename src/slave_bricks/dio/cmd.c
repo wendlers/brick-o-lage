@@ -1,7 +1,7 @@
 /*
- * This file is part of the mps430-ioexp project.
+ * This file is part of the Brick-o-Lage project.
  *
- * Copyright (C) 2011 Stefan Wendler <sw@kaltpost.de>
+ * Copyright (C) 2014 Stefan Wendler <sw@kaltpost.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #include <legacymsp430.h>
 
 /**
+ * Pin connection for this brick is:
+ *
  * RX - P1.1
  * TX - P1.2
  *
@@ -38,6 +40,7 @@
  * ACT_LED - P2.4
  */
 
+// if thie is defined, debug information will be printed on serial port
 #define SERIAL_DEBUG
 
 #ifdef SERIAL_DEBUG
@@ -48,11 +51,11 @@
 #include "cmd.h"
 
 /* Commands */
-#define CMD_SET_POUT    0x01
-#define CMD_GET_PIN     0x02
-#define CMD_RESET       0xA0
-#define CMD_FW_TYPE		0xF0
-#define CMD_FW_VERSION	0xF1
+#define CMD_SET_POUT    0x01	// set output pin (H/L)
+#define CMD_GET_PIN     0x02	// get input pin state (H/L)
+#define CMD_RESET       0xA0	// reset the brick
+#define CMD_FW_TYPE		0xF0	// get firmware-type
+#define CMD_FW_VERSION	0xF1	// get firmware-version
 
 static i2c_cmds cmds = {
      .count = 5,
@@ -176,10 +179,8 @@ void cmd_get_fwtype(i2c_cmd_args *args)
 {
 	act();
 
-	// FIXME: add to global defines
-	// 0x01 = DIO
 	i2cslave_cmdproc_clrres();
-	i2cslave_cmdproc_addres(0x01);
+	i2cslave_cmdproc_addres(FW_TYPE);
 
 #ifdef SERIAL_DEBUG
 	cio_printf("%s\n\r", __func__);
@@ -190,10 +191,8 @@ void cmd_get_fwversion(i2c_cmd_args *args)
 {
 	act();
 
-	// FIXME: add to global defines
-	// current fw-version
 	i2cslave_cmdproc_clrres();
-	i2cslave_cmdproc_addres(0x01);
+	i2cslave_cmdproc_addres(FW_VERSION);
 
 #ifdef SERIAL_DEBUG
 	cio_printf("%s\n\r", __func__);

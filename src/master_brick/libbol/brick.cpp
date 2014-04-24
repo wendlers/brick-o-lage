@@ -31,6 +31,11 @@ const char* bol::Brick::DIO2 = "DIO2";
 const char* bol::Brick::DIO3 = "DIO3";
 const char* bol::Brick::DIO4 = "DIO4";
 
+const char* bol::Brick::DCM1 = "DCM1";
+const char* bol::Brick::DCM2 = "DCM2";
+const char* bol::Brick::DCM3 = "DCM3";
+const char* bol::Brick::DCM4 = "DCM4";
+
 bol::GenericBrick::GenericBrick(BrickBus *brickBus, int slaveAddress)
 {
 	bbus = brickBus;
@@ -84,6 +89,9 @@ bol::BrickType bol::GenericBrick::getType()
 	switch(res[0]) {
 		case 0x01:
 			type = BrickType::DIO;
+			break;
+		case 0x02:
+			type = BrickType::DCM;
 			break;
 		default:
 			type = BrickType::UNKNOWN;

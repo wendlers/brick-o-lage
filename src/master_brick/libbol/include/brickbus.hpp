@@ -111,6 +111,7 @@ private:
 friend class Brick;
 friend class GenericBrick;
 friend class DioBrick;
+friend class DcmBrick;
 };
 
 }

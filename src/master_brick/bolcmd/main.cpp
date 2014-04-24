@@ -18,11 +18,20 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include <signal.h>
 
-#include "brick.hpp"
-#include "diobrick.hpp"
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+
+#include <brick.hpp>
+#include <diobrick.hpp>
+#include <dcmbrick.hpp>
+#include <brickscript.hpp>
+
+using namespace boost::program_options;
 
 using namespace std;
 using namespace bol;
@@ -46,78 +55,120 @@ public:
 
 	PortUpdateHandler(Brick &brick) : b(brick)
 	{
-		cout << "con" << endl;
 	}
 
 	void onUpdate(BrickPort &p)
 	{
 		cout << "PortUpate: name=" << p.getName() << ", value=" << (int)p << endl;
-
-		if(p.getName() == DioBrick::DI1)
-		{
-			cout << "change DO1" << endl;
-			b[DioBrick::DO1] = p;
-		}
-		else if(p.getName() == DioBrick::DI2)
-		{
-			cout << "change DO2" << endl;
-			b[DioBrick::DO2] = p;
-		}
-		else if(p.getName() == DioBrick::DI3)
-		{
-			cout << "change DO3" << endl;
-			b[DioBrick::DO3] = p;
-		}
 	}
 };
 
-int main(void) 
+int main(int argc, const char* argv[])
 {
-	try
+	BrickScript bs;
+
+	// handle sigint
+	signal(SIGINT, sigHandler);
+
+	options_description description("Bric(k)-o-Lage command line utility");
+
+	description.add_options()
+	    ("help,h", "show help message")
+	    ("script,s", value<string>(), "run bolscript")
+	    ("brick,b", value<vector<string>>(), "brick identifier")
+	    ("port,p", value<vector<string>>(), "port identifier")
+	    ("value,v", value<vector<int>>(), "port value")
+	;
+
+    variables_map vm;
+    store(parse_command_line(argc, argv, description), vm);
+    notify(vm);
+
+	if(vm.count("help"))
 	{
-		// handle sigint
-		signal(SIGINT, sigHandler);
+		cout << description;
+		return 0;
+	}
 
-		// start brick bus (if no bus started, default bus will be started)
-		// BrickBus::initialize();
+	if(vm.count("script"))
+	{
+		string script = vm["script"].as<string>();
 
-		// ask for DIO brick on address 0x48
-		// Brick b(0x48);
-		Brick b(Brick::DIO1);
+		ifstream infile(script, ifstream::binary);
 
-		// set sync priority
-		b.setSyncPriority(3);
+		std::string code = "";
 
-		// describe bus and bricks by JSON meta data
-		cout << endl << BrickBus::describe() << endl << endl;
-
-		b[DioBrick::DO1] = DioBrick::HIGH;
-		b[DioBrick::DO2] = DioBrick::HIGH;
-		b[DioBrick::DO3] = DioBrick::HIGH;
-		b[DioBrick::DO4] = DioBrick::HIGH;
-
-		PortUpdateHandler h(b);
-
-		b[DioBrick::DI1].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
-		b[DioBrick::DI2].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
-		b[DioBrick::DI3].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
-
-		// loop until SIGINT received
-		while(!terminated) 
+		if(infile.is_open())
 		{
-			b[DioBrick::DO4] = DioBrick::HIGH;
-			usleep(10000);
-			b[DioBrick::DO4] = DioBrick::LOW;
-			usleep(10000);
+			std::string line;
+			while(std::getline(infile, line))
+			{
+				code += line;
+				code += "\n";
+			}
+
+			bs.run(code);
+		}
+		else
+		{
+			cerr << "ERROR: Unable to load script: " << script << endl;
+			return 1;
 		}
 
-		// stop brick bus (no need to do so, BrickBus singleton has watch ...
-		// BrickBus::terminate();
+		infile.close();
 	}
-	catch (exception& e)
+	else if(vm.count("brick") && vm.count("port") && vm.count("value"))
 	{
-		cerr << "exception caught: " << e.what() << endl;
-		return 1;
+		try
+		{
+			vector<string> bricks = vm["brick"].as<vector<string>>();
+			vector<string> ports  = vm["port"].as<vector<string>>();
+			vector<int> val = vm["value"].as<vector<int>>();
+
+			for(unsigned int i = 0; i < bricks.size(); i++)
+			{
+				Brick b(bricks[i].c_str());
+
+				// set port value
+				b[ports[i].c_str()] = val[i];
+			}
+		}
+		catch (exception& e)
+		{
+			cerr << "ERROR: " << e.what() << endl;
+			return 1;
+		}
+	}
+	else if(vm.count("brick") && vm.count("port"))
+	{
+		try
+		{
+			vector<string> bricks = vm["brick"].as<vector<string>>();
+			vector<string> ports  = vm["port"].as<vector<string>>();
+
+			for(unsigned int i = 0; i < bricks.size(); i++)
+			{
+				Brick b(bricks[i].c_str());
+
+				PortUpdateHandler h(b);
+
+				// register handler
+				b[ports[i].c_str()].connect(boost::bind(&PortUpdateHandler::onUpdate, h, _1));
+			}
+		}
+		catch (exception& e)
+		{
+			cerr << "ERROR: " << e.what() << endl;
+			return 1;
+		}
+	}
+
+	cout << "Press Ctrl+C to end" << endl;
+
+	// loop until SIGINT received
+	while(!terminated)
+	{
+		usleep(10000);
 	}
 
 	cout << "Terminated" << endl;

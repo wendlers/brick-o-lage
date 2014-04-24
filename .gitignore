@@ -7,3 +7,6 @@
 *.hex
 *.list
 *.srec
+*.a
+bolcmd
+bolsrv

@@ -1,7 +1,7 @@
 /*
- * This file is part of the mps430-ioexp project.
+ * This file is part of the Brick-o-Lage project.
  *
- * Copyright (C) 2011 Stefan Wendler <sw@kaltpost.de>
+ * Copyright (C) 2014 Stefan Wendler <sw@kaltpost.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "brickbus.hpp"
 #include "brick.hpp"
 #include "diobrick.hpp"
+#include "dcmbrick.hpp"
 
 // #define TRACE	std::cout << __func__ << "::" << __LINE__ << std::endl;
 #define TRACE
@@ -253,6 +254,12 @@ bol::GenericBrick *bol::BrickBus::getBrickByName(const char* name)
 		start = 0x48;
 		DBG("Brick type for name is DIO")
 	}
+	else if(n.substr(0, 3) == "DCM")
+	{
+		type = BrickType::DCM;
+		start = 0x4C;
+		DBG("Brick type for name is DCM")
+	}
 
 	if(start == 0)
 	{
@@ -320,6 +327,12 @@ void bol::BrickBus::discover()
 				DBG("Found DIO brick at address " << slaveAddress)
 
 				bmap[slaveAddress] = (GenericBrick *)new DioBrick(genericBrick);
+			}
+			else if(genericBrick.getType() == BrickType::DCM)
+			{
+				DBG("Found DCM brick at address " << slaveAddress)
+
+				bmap[slaveAddress] = (GenericBrick *)new DcmBrick(genericBrick);
 			}
 			else
 			{

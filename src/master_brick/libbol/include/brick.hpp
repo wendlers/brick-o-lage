@@ -50,6 +50,11 @@ public:
 	static const char* DIO3;
 	static const char* DIO4;
 
+	static const char* DCM1;
+	static const char* DCM2;
+	static const char* DCM3;
+	static const char* DCM4;
+
 	Brick(int slaveAddress);
 
 	Brick(int slaveAddress, BrickType type);

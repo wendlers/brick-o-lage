@@ -17,6 +17,7 @@ SOURCES += brickbus.cpp
 SOURCES += brickport.cpp 
 SOURCES += brick.cpp 
 SOURCES += diobrick.cpp
+SOURCES += dcmbrick.cpp
 SOURCES += brickscript.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)

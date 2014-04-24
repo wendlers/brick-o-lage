@@ -1,7 +1,7 @@
 /*
- * This file is part of the libemb project.
+ * This file is part of the Brick-o-Lage project.
  *
- * Copyright (C) 2011 Stefan Wendler <sw@kaltpost.de>
+ * Copyright (C) 2014 Stefan Wendler <sw@kaltpost.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,11 +15,6 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/**
- *
- * NOTE: 100k extrnal pull-ups are needed on SDA/SDC.
  */
 
 #include <msp430.h>

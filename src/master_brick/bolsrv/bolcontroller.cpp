@@ -57,8 +57,8 @@ void bol::srv::BolController::postUserData(Mongoose::Request &request, Mongoose:
 
 void bol::srv::BolController::getUserData(Mongoose::Request &request, Mongoose::StreamResponse &response)
 {
-	std::string name 	  = request.get("userDataName", "(unknown)");
-	std::string  filePath = "/root/html/userdata/" + name;
+	std::string name 	 = request.get("userDataName", "(unknown)");
+	std::string filePath = "/root/html/userdata/" + name;
 
 	// if no name is given, send back list of available files
 	if(name == "(unknown)")

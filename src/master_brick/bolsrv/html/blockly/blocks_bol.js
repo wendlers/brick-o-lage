@@ -88,3 +88,43 @@ Blockly.Blocks['bol_repeat_forever'] = {
     this.setTooltip('');
   }
 };
+
+Blockly.Blocks['bol_dcm_direction'] = {
+  init: function() {
+    this.setHelpUrl('http://www.example.com/');
+    this.setColour(290);
+    this.appendDummyInput()
+        .appendField("set DCM")
+        .appendField(new Blockly.FieldDropdown([["1", "DCM1"], ["2", "DCM2"], ["3", "DCM3"], ["4", "DCM4"]]), "brick");
+    this.appendDummyInput()
+        .appendField("motor")
+        .appendField(new Blockly.FieldDropdown([["1", "DIR_M1"], ["2", "DIR_M2"]]), "port");
+    this.appendDummyInput()
+        .appendField("direction")
+        .appendField(new Blockly.FieldDropdown([["CW", "1"], ["CCW", "2"], ["STOP", "3"]]), "direction");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, "null");
+    this.setNextStatement(true, "null");
+    this.setTooltip('');
+  }
+};
+
+Blockly.Blocks['bol_dcm_speed'] = {
+  init: function() {
+    this.setHelpUrl('http://www.example.com/');
+    this.setColour(290);
+    this.appendDummyInput()
+        .appendField("set DCM")
+        .appendField(new Blockly.FieldDropdown([["1", "DCM1"], ["2", "DCM2"], ["3", "DCM3"], ["4", "DCM4"]]), "brick");
+    this.appendDummyInput()
+        .appendField("motor")
+        .appendField(new Blockly.FieldDropdown([["1", "SPEED_M1"], ["2", "SPEED_M2"]]), "port");
+    this.appendValueInput("speed")
+        .setCheck("Number")
+        .appendField("speed");
+    this.setInputsInline(true);
+    this.setPreviousStatement(true, "null");
+    this.setNextStatement(true, "null");
+    this.setTooltip('');
+  }
+};

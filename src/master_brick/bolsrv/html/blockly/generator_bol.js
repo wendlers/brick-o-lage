@@ -61,3 +61,25 @@ Blockly.Python['bol_repeat_forever'] = function(block) {
 
   return code;
 };
+
+Blockly.Python['bol_dcm_direction'] = function(block) {
+  var dropdown_brick = block.getFieldValue('brick');
+  var dropdown_port = block.getFieldValue('port');
+  var dropdown_direction = block.getFieldValue('direction');
+  
+  var code = 'bol.set_port("' + dropdown_brick + '", "' + dropdown_port + '", ' + dropdown_direction + ')\n';
+ 
+  return code;
+};
+
+Blockly.Python['bol_dcm_speed'] = function(block) {
+  var dropdown_brick = block.getFieldValue('brick');
+  var dropdown_port = block.getFieldValue('port');
+  var value_speed = Blockly.Python.valueToCode(block, 'speed', Blockly.Python.ORDER_ATOMIC);
+ 
+  var code = 
+  	'bol.set_port("' + dropdown_brick + '", "' + dropdown_port + '_CW", '  + value_speed + ')\n' +
+    'bol.set_port("' + dropdown_brick + '", "' + dropdown_port + '_CCW", ' + value_speed + ')\n';
+ 
+  return code;
+};

@@ -10,3 +10,4 @@
 *.a
 bolcmd
 bolsrv
+src/master_brick/libmongoosecpp/include

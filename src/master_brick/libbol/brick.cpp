@@ -118,6 +118,7 @@ void bol::GenericBrick::reset()
 {
 	std::vector<unsigned char> msg = {CMD_RESET};
 	bbus->write(address, msg);
+	usleep(5000);
 }
 
 bol::BrickPort *bol::GenericBrick::getPortByName(const char *name)

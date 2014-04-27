@@ -97,6 +97,26 @@ void bol::BrickBus::terminate()
 	delete busInstance;
 }
 
+void bol::BrickBus::reset()
+{
+	TRACE
+
+	BrickMap::iterator it;
+
+	for(it = bmap.begin(); it != bmap.end(); ++it)
+	{
+		GenericBrick *b = it->second;
+
+		if(b == NULL)
+		{
+			DBG("NULL brick in map!")
+			break;
+		}
+
+		b->reset();
+	}
+}
+
 bol::BrickBus *bol::BrickBus::getInstance()
 {
 	TRACE

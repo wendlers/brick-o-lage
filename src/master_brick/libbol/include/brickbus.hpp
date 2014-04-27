@@ -72,9 +72,12 @@ public:
 
 	static void terminate();
 
+
 	static BrickBus *getInstance();
 
 	static std::string describe();
+
+	void reset();
 
 protected:
 

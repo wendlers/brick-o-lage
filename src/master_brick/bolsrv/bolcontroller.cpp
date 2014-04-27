@@ -21,6 +21,40 @@
 #include <fstream>
 #include "bolcontroller.hpp"
 
+bol::srv::BolController::BolController(std::string userDataLocation)
+{
+	userData = userDataLocation;
+}
+
+bool bol::srv::BolController::runScriptFromFile(std::string scriptFile)
+{
+	bool stat = false;
+
+	std::string code = "";
+
+	// if name is given, try loading data from file
+	std::ifstream infile(scriptFile, std::ifstream::binary);
+
+	if(infile.is_open())
+	{
+		std::string line;
+
+		while(std::getline(infile, line))
+		{
+			code += line;
+			code += "\n";
+		}
+
+		stat = true;
+
+		bs.run(code);
+	}
+
+	infile.close();
+
+	return stat;
+}
+
 void bol::srv::BolController::postRun(Mongoose::Request& request, Mongoose::StreamResponse& response)
 {
 	std::string code = request.get("pythonCode", "(unknown)");
@@ -48,7 +82,7 @@ void bol::srv::BolController::postUserData(Mongoose::Request &request, Mongoose:
 	std::string name 	= request.get("userDataName", "(unknown)");
 	std::string content = request.get("userDataContent", "(unknown)");
 
-	std::string  filePath = "/root/html/userdata/" + name;
+	std::string  filePath = userData + "/" + name;
 
 	std::ofstream outfile(filePath, std::ofstream::binary);
 	outfile << content;
@@ -58,7 +92,7 @@ void bol::srv::BolController::postUserData(Mongoose::Request &request, Mongoose:
 void bol::srv::BolController::getUserData(Mongoose::Request &request, Mongoose::StreamResponse &response)
 {
 	std::string name 	 = request.get("userDataName", "(unknown)");
-	std::string filePath = "/root/html/userdata/" + name;
+	std::string filePath = userData + "/" + name;
 
 	// if no name is given, send back list of available files
 	if(name == "(unknown)")
@@ -67,7 +101,7 @@ void bol::srv::BolController::getUserData(Mongoose::Request &request, Mongoose::
 		struct dirent *ent;
 		bool first = true;
 
-		if ((dir = opendir("/root/html/userdata")) != NULL)
+		if ((dir = opendir(userData.c_str())) != NULL)
 		{
 			response << "[";
 
@@ -93,8 +127,6 @@ void bol::srv::BolController::getUserData(Mongoose::Request &request, Mongoose::
 	}
 
 	// if name is given, try loading data from file
-	std::cout << "loading user data: " << name << std::endl;
-
 	std::ifstream infile(filePath, std::ifstream::binary);
 
 	if(infile.is_open())

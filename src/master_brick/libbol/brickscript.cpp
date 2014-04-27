@@ -20,6 +20,7 @@
 #include <boost/python.hpp>
 
 #include "brick.hpp"
+#include "brickexception.hpp"
 #include "brickscript.hpp"
 
 namespace bol
@@ -364,8 +365,28 @@ void bol::BrickScript::execThreadFunction()
 
 			PyErr_Print();
 		}
+		catch(BrickException &e)
+		{
+			std::cout << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << "** BOL script BrickException      " << std::endl;
+			std::cout << "**********************************" << std::endl;
+			std::cout << std::endl;
+
+			std::cerr << e.what() << std::endl;
+		}
 
 		BrickPortEventCallback::clearCallbacks();
+
+		// try to reset all bricks on the bus
+		try
+		{
+			BrickBus::getInstance()->reset();
+		}
+		catch(...)
+		{
+			// ignore whatever happens here ...
+		}
 
 		setPause(true);
 	}

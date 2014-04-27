@@ -34,7 +34,13 @@ private:
 
 	bol::BrickScript bs;
 
+	std::string userData;
+
 public:
+
+	BolController(std::string userDataLocation);
+
+	bool runScriptFromFile(std::string scriptFile);
 
 	void postRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
 

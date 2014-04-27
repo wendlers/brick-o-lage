@@ -27,6 +27,7 @@ LIBS	+= -lboost_thread
 LIBS	+= -lboost_chrono
 LIBS	+= -lboost_system
 LIBS	+= -lboost_signals
+LIBS	+= -lboost_program_options
 LIBS	+= -lboost_python
 LIBS	+= -lpthread
 LIBS	+= -lpython2.7
@@ -35,6 +36,7 @@ LIBS	+= -ldl
 LIBS	+= -lz
 
 SOURCES  = main.cpp
+SOURCES += daemon.cpp
 SOURCES += bolcontroller.cpp
 
 OBJECTS 	= $(SOURCES:.cpp=.o) 

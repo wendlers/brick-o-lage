@@ -27,32 +27,32 @@ namespace bol {
 class DioBrick : public GenericBrick
 {
 private:
-	unsigned char pout;
+    unsigned char pout;
 
-	DioBrick(const GenericBrick &brick);
+    DioBrick(const GenericBrick &brick);
 
-	virtual ~DioBrick();
+    virtual ~DioBrick();
 
 public:
 
-	static const int LOW;
-	static const int HIGH;
+    static const int LOW;
+    static const int HIGH;
 
-	static const char* DI1;
-	static const char* DI2;
-	static const char* DI3;
-	static const char* DI4;
+    static const char* DI1;
+    static const char* DI2;
+    static const char* DI3;
+    static const char* DI4;
 
-	static const char* DO1;
-	static const char* DO2;
-	static const char* DO3;
-	static const char* DO4;
+    static const char* DO1;
+    static const char* DO2;
+    static const char* DO3;
+    static const char* DO4;
 
 protected:
 
-	void sync(bool out = true, bool in = true);
+    void sync(bool out = true, bool in = true);
 
-	friend class BrickBus;
+    friend class BrickBus;
 };
 
 }

@@ -28,19 +28,19 @@ class BrickException : public std::exception
 {
 private:
 
-	const char *message; 
+    const char *message;
 
 public:
 
-	BrickException(const char *aMessage)
-	{
-		message = aMessage;
-	}
+    BrickException(const char *aMessage)
+    {
+        message = aMessage;
+    }
 
-	virtual const char* what() const throw()
-	{
-		return message;
-	}
+    virtual const char* what() const throw()
+    {
+        return message;
+    }
 };
 
 }

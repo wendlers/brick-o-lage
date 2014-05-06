@@ -29,8 +29,8 @@
 namespace bol {
 
 enum class BrickPortType {
-	INPUT = 0, 
-	OUTPUT = 1,
+    INPUT = 0,
+    OUTPUT = 1,
 };
 
 
@@ -38,43 +38,43 @@ class BrickPort
 {
 public:
 
-	typedef boost::signal<void (BrickPort &)>  BrickPortSig;
-	typedef boost::signals::connection  BrickPortSigCon;
+    typedef boost::signal<void (BrickPort &)>  BrickPortSig;
+    typedef boost::signals::connection  BrickPortSigCon;
 
 private:
-	
-	std::string	name;
 
-	BrickPortType type;
+    std::string	name;
 
-	int from;
-	int to;
-	int	step;
-	int current;
+    BrickPortType type;
 
-	BrickPortSig sig;
-	
+    int from;
+    int to;
+    int	step;
+    int current;
+
+    BrickPortSig sig;
+
 public:
 
-	BrickPort(std::string portName, BrickPortType portType, int valueFrom = 0, int valueTo = 1, int valueStep = 1);
+    BrickPort(std::string portName, BrickPortType portType, int valueFrom = 0, int valueTo = 1, int valueStep = 1);
 
-	BrickPort(const BrickPort &port);
+    BrickPort(const BrickPort &port);
 
-	std::string getName();
+    std::string getName();
 
-	BrickPortType getType();
+    BrickPortType getType();
 
-	void setValue(int value);
+    void setValue(int value);
 
-	int getValue();
+    int getValue();
 
-	int getValueFrom();
+    int getValueFrom();
 
-	int getValueTo();
+    int getValueTo();
 
-	int getValueStep();
+    int getValueStep();
 
-	std::string describe();
+    std::string describe();
 
     BrickPortSigCon connect(BrickPortSig::slot_function_type subscriber);
 

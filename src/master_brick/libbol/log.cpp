@@ -25,7 +25,7 @@ bol::Log* bol::Log::instance = NULL;
 
 bol::Log::Log(int logLevel)
 {
-	level = logLevel;
+    level = logLevel;
 }
 
 bol::Log::~Log()
@@ -34,58 +34,58 @@ bol::Log::~Log()
 
 void bol::Log::initialize(bol::Log *logInstance, int logLevel)
 {
-	instance = logInstance;
-	instance->level = logLevel;
+    instance = logInstance;
+    instance->level = logLevel;
 }
 
 void bol::Log::setLevel(int logLevel)
 {
-	instance->level = logLevel;
+    instance->level = logLevel;
 }
 
 int bol::Log::getLevel()
 {
-	return instance->level;
+    return instance->level;
 }
 
 void bol::Log::print(int priority, const char *format, ...)
 {
-	if(instance == NULL || priority > instance->level)
-	{
-		return;
-	}
+    if(instance == NULL || priority > instance->level)
+    {
+        return;
+    }
 
-	va_list argptr;
-	va_start(argptr, format);
-	instance->_print(priority, format, argptr);
-	va_end(argptr);
+    va_list argptr;
+    va_start(argptr, format);
+    instance->_print(priority, format, argptr);
+    va_end(argptr);
 }
 
 bool bol::Log::shouldPrint(int priority)
 {
-	return (priority <= level);
+    return (priority <= level);
 }
 
 bol::LogSysLog bol::LogSysLog::instance;
 
 bol::LogSysLog::LogSysLog(int logLevel) : bol::Log(logLevel)
 {
-	openlog("bol", LOG_PID | LOG_CONS, LOG_USER);
+    openlog("bol", LOG_PID | LOG_CONS, LOG_USER);
 }
 
 bol::Log *bol::LogSysLog::getInstance()
 {
-	return &instance;
+    return &instance;
 }
 
 bol::LogSysLog::~LogSysLog()
 {
-	closelog();
+    closelog();
 }
 
 void bol::LogSysLog::_print(int priority, const char *format, va_list argptr)
 {
-	vsyslog(priority, format, argptr);
+    vsyslog(priority, format, argptr);
 }
 
 
@@ -97,7 +97,7 @@ bol::LogStdOut::LogStdOut(int logLevel) : bol::Log(logLevel)
 
 bol::Log *bol::LogStdOut::getInstance()
 {
-	return &instance;
+    return &instance;
 }
 
 #define RESET		0
@@ -119,35 +119,35 @@ bol::Log *bol::LogStdOut::getInstance()
 
 void textcolor(int attr, int fg, int bg)
 {
-	printf("%c[%d;%d;%dm", 0x1B, attr, fg + 30, bg + 40);
+    printf("%c[%d;%d;%dm", 0x1B, attr, fg + 30, bg + 40);
 }
 
 void bol::LogStdOut::_print(int priority, const char *format, va_list argptr)
 {
-	textcolor(BRIGHT, WHITE, BLACK);
-	printf("[BOL]");
+    textcolor(BRIGHT, WHITE, BLACK);
+    printf("[BOL]");
 
-	switch(priority)
-	{
-	case Log::ERR:
-		textcolor(BRIGHT, RED, BLACK);
-		printf("[E] ");
-		break;
-	case Log::WARNING:
-		textcolor(BRIGHT, MAGENTA, BLACK);
-		printf("[W] ");
-		break;
-	case Log::INFO:
-		textcolor(BRIGHT, YELLOW, BLACK);
-		printf("[I] ");
-		break;
-	case Log::DEBUG:
-		textcolor(BRIGHT, GREEN, BLACK);
-		printf("[D] ");
-		break;
-	}
-	textcolor(RESET, WHITE, BLACK);
+    switch(priority)
+    {
+    case Log::ERR:
+        textcolor(BRIGHT, RED, BLACK);
+        printf("[E] ");
+        break;
+    case Log::WARNING:
+        textcolor(BRIGHT, MAGENTA, BLACK);
+        printf("[W] ");
+        break;
+    case Log::INFO:
+        textcolor(BRIGHT, YELLOW, BLACK);
+        printf("[I] ");
+        break;
+    case Log::DEBUG:
+        textcolor(BRIGHT, GREEN, BLACK);
+        printf("[D] ");
+        break;
+    }
+    textcolor(RESET, WHITE, BLACK);
 
-	vprintf(format, argptr);
-	printf("\n");
+    vprintf(format, argptr);
+    printf("\n");
 }

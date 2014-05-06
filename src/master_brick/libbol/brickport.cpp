@@ -22,116 +22,116 @@
 
 bol::BrickPort::BrickPort(std::string portName, BrickPortType portType, int valueFrom, int valueTo, int valueStep)
 {
-	name = portName;
-	type = portType;
-	from = valueFrom;
-	to   = valueTo;
-	step = valueStep;
+    name = portName;
+    type = portType;
+    from = valueFrom;
+    to   = valueTo;
+    step = valueStep;
 
-	current = from;
+    current = from;
 }
 
 bol::BrickPort::BrickPort(const BrickPort &port)
 {
-	name = port.name;
-	type = port.type;
-	from = port.from;
-	to   = port.to;
-	step = port.step;
+    name = port.name;
+    type = port.type;
+    from = port.from;
+    to   = port.to;
+    step = port.step;
 
-	current = from;
+    current = from;
 }
 
 std::string bol::BrickPort::getName()
 {
-	return name;
+    return name;
 }
 
 bol::BrickPortType bol::BrickPort::getType()
 {
-	return type;
+    return type;
 }
 
 void bol::BrickPort::setValue(int value)
 {
-	bool doSig = (current != value); 
+    bool doSig = (current != value);
 
-	current = value;
-	
-	if(doSig)
-	{
-		sig(*this);
-	}
+    current = value;
+
+    if(doSig)
+    {
+        sig(*this);
+    }
 }
 
 int bol::BrickPort::getValue()
 {
-	return current;
+    return current;
 }
 
 int bol::BrickPort::getValueFrom()
 {
-	return from;
+    return from;
 }
 
 int bol::BrickPort::getValueTo()
 {
-	return to;
+    return to;
 }
 
 int bol::BrickPort::getValueStep()
 {
-	return step;
+    return step;
 }
 
 std::string bol::BrickPort::describe()
 {
-	std::stringstream d;
+    std::stringstream d;
 
-	d << "\"BrickPort\": {\"name\"=" << name << "\", \"type\"=";
+    d << "\"BrickPort\": {\"name\"=" << name << "\", \"type\"=";
 
-	if(type == BrickPortType::INPUT)
-	{
-		d << "\"INPUT\"";
-	}
-	else
-	{
-		d << "\"OUTPUT\"";
-	}
+    if(type == BrickPortType::INPUT)
+    {
+        d << "\"INPUT\"";
+    }
+    else
+    {
+        d << "\"OUTPUT\"";
+    }
 
-	d << ", \"from\"=" << from;
-	d << ", \"to\"=" << to;
-	d << ", \"step\"=" << step;
-	d << ", \"current\"=" << current;
+    d << ", \"from\"=" << from;
+    d << ", \"to\"=" << to;
+    d << ", \"step\"=" << step;
+    d << ", \"current\"=" << current;
 
-	d << "}";
+    d << "}";
 
-	return d.str();
-}    
+    return d.str();
+}
 
 bol::BrickPort::BrickPortSigCon bol::BrickPort::connect(bol::BrickPort::BrickPortSig::slot_function_type subscriber)
 {
-	return sig.connect(subscriber);
+    return sig.connect(subscriber);
 }
 
 void bol::BrickPort::disconnect(bol::BrickPort::BrickPortSigCon subscriber)
 {
-	subscriber.disconnect();
+    subscriber.disconnect();
 }
 
 bol::BrickPort &bol::BrickPort::operator=(int portValue)
 {
-	setValue(portValue);
-	return *this;
+    setValue(portValue);
+    return *this;
 }
 
 bol::BrickPort &bol::BrickPort::operator=(BrickPort &port)
 {
-	setValue(port);
-	return *this;
+    setValue(port);
+    return *this;
 }
 
 bol::BrickPort::operator int()
 {
-	return current;
+    return current;
 }

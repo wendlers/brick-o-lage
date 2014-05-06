@@ -32,29 +32,29 @@ class BolController : public Mongoose::WebController
 {
 private:
 
-	bol::BrickScript bs;
+    bol::BrickScript bs;
 
-	std::string userData;
+    std::string userData;
 
 public:
 
-	BolController(std::string userDataLocation);
+    BolController(std::string userDataLocation);
 
-	bool runScriptFromFile(std::string scriptFile);
+    bool runScriptFromFile(std::string scriptFile);
 
-	void postRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
+    void postRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void getRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
+    void getRun(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void getStop(Mongoose::Request &request, Mongoose::StreamResponse &response);
+    void getStop(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void postUserData(Mongoose::Request &request, Mongoose::StreamResponse &response);
+    void postUserData(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void getUserData(Mongoose::Request &request, Mongoose::StreamResponse &response);
+    void getUserData(Mongoose::Request &request, Mongoose::StreamResponse &response);
 
-	void setup();
+    void setup();
 
-	bol::BrickScript *getScriptEngine();
+    bol::BrickScript *getScriptEngine();
 };
 
 }

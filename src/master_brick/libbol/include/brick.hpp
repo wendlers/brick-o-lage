@@ -27,128 +27,128 @@
 
 namespace bol {
 
-enum class BrickType 
-{ 
-	UNKNOWN = 0x00,
-	DIO 	= 0x01,
-	DCM 	= 0x02,
-	SER 	= 0x03,
-	SEN 	= 0x04,
-	ANY 	= 0xFF,
+enum class BrickType
+{
+    UNKNOWN = 0x00,
+    DIO 	= 0x01,
+    DCM 	= 0x02,
+    SER 	= 0x03,
+    SEN 	= 0x04,
+    ANY 	= 0xFF,
 };
 
 class Brick
 {
 private:
 
-	GenericBrick *brick;
+    GenericBrick *brick;
 
 public:
 
-	static const char* DIO1;
-	static const char* DIO2;
-	static const char* DIO3;
-	static const char* DIO4;
+    static const char* DIO1;
+    static const char* DIO2;
+    static const char* DIO3;
+    static const char* DIO4;
 
-	static const char* DCM1;
-	static const char* DCM2;
-	static const char* DCM3;
-	static const char* DCM4;
+    static const char* DCM1;
+    static const char* DCM2;
+    static const char* DCM3;
+    static const char* DCM4;
 
-	Brick(int slaveAddress);
+    Brick(int slaveAddress);
 
-	Brick(int slaveAddress, BrickType type);
+    Brick(int slaveAddress, BrickType type);
 
-	Brick(const char *name);
+    Brick(const char *name);
 
-	BrickType getType();
+    BrickType getType();
 
-	unsigned char getFirmwareVersion();
+    unsigned char getFirmwareVersion();
 
-	void reset();
+    void reset();
 
-	BrickPort *getPortByName(const char *name);
+    BrickPort *getPortByName(const char *name);
 
-	BrickPortMap *getPorts();
+    BrickPortMap *getPorts();
 
-	void setPortValue(const char *name, int value);
+    void setPortValue(const char *name, int value);
 
-	int  getPortValue(const char *name);
+    int  getPortValue(const char *name);
 
-	void setSyncPriority(int syncPriority);
+    void setSyncPriority(int syncPriority);
 
-	int getSyncPriority();
+    int getSyncPriority();
 
-	std::string describe();
+    std::string describe();
 
-	BrickPort &operator[](const char *name);
+    BrickPort &operator[](const char *name);
 
-	static BrickPort *get_port(const char *brickName, const char *portName);
+    static BrickPort *get_port(const char *brickName, const char *portName);
 
-	static void set_port_value(const char *brickName, const char *portName, const int value);
+    static void set_port_value(const char *brickName, const char *portName, const int value);
 
-	static int get_port_value(const char *brickName, const char *portName);
+    static int get_port_value(const char *brickName, const char *portName);
 };
 
 class GenericBrick
 {
 protected:
 
-	BrickBus *bbus;
+    BrickBus *bbus;
 
-	int address;
+    int address;
 
-	int priority;
+    int priority;
 
-	int currentPriority;
+    int currentPriority;
 
-	int	fwVersion;
+    int	fwVersion;
 
-	BrickType type;
+    BrickType type;
 
-	BrickPortMap pmap;
+    BrickPortMap pmap;
 
-	GenericBrick(BrickBus *brickBus, int slaveAddress);
+    GenericBrick(BrickBus *brickBus, int slaveAddress);
 
 protected:
 
-	GenericBrick(const GenericBrick &brick);
+    GenericBrick(const GenericBrick &brick);
 
 public:
 
-	virtual ~GenericBrick();
+    virtual ~GenericBrick();
 
-	BrickType getType();
+    BrickType getType();
 
-	unsigned char getFirmwareVersion();
+    unsigned char getFirmwareVersion();
 
-	void reset();
+    void reset();
 
-	BrickPort *getPortByName(const char *name);
+    BrickPort *getPortByName(const char *name);
 
-	BrickPortMap *getPorts();
+    BrickPortMap *getPorts();
 
-	void setPortValue(const char *name, int value);
+    void setPortValue(const char *name, int value);
 
-	int  getPortValue(const char *name);
+    int  getPortValue(const char *name);
 
-	void setSyncPriority(int syncPriority);
+    void setSyncPriority(int syncPriority);
 
-	int getSyncPriority();
+    int getSyncPriority();
 
-	std::string describe();
+    std::string describe();
 
-	BrickPort &operator[](const char *name);
+    BrickPort &operator[](const char *name);
 
 protected:
 
-	virtual void sync(bool out = true, bool in = true);
+    virtual void sync(bool out = true, bool in = true);
 
-	bool shouldSync();
+    bool shouldSync();
 
-	void addPort(BrickPort *port);
+    void addPort(BrickPort *port);
 
-	friend class BrickBus;
+    friend class BrickBus;
 };
 
 }

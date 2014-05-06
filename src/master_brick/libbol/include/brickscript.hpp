@@ -31,39 +31,39 @@ class BrickScript
 {
 private:
 
-	bool pause;
+    bool pause;
 
-	boost::mutex runMutex;
+    boost::mutex runMutex;
 
-	boost::mutex pauseMutex;
-	boost::condition_variable pauseChanged;
+    boost::mutex pauseMutex;
+    boost::condition_variable pauseChanged;
 
-	boost::thread *execThread;
-	std::string currentProg;
+    boost::thread *execThread;
+    std::string currentProg;
 
 public:
 
-	BrickScript();
+    BrickScript();
 
-	~BrickScript();
+    ~BrickScript();
 
-	void run(std::string prog);
+    void run(std::string prog);
 
-	void stop();
+    void stop();
 
-	bool isRunning();
+    bool isRunning();
 
-	void callback();
+    void callback();
 
 private:
 
-	void execThreadFunction();
+    void execThreadFunction();
 
-	void blockOnPause();
+    void blockOnPause();
 
-	void setPause(bool doPause);
+    void setPause(bool doPause);
 
-	bool waitUntilStopped(int timeOut = 1000);
+    bool waitUntilStopped(int timeOut = 1000);
 };
 
 }

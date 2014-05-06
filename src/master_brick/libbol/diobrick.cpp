@@ -41,59 +41,59 @@ const char* bol::DioBrick::DO4 = "DO4";
 
 bol::DioBrick::DioBrick(const GenericBrick &brick) : bol::GenericBrick(brick)
 {
-	pout = 0x00;
+    pout = 0x00;
 
-	addPort(new BrickPort(DI1, BrickPortType::INPUT));
-	addPort(new BrickPort(DI2, BrickPortType::INPUT));
-	addPort(new BrickPort(DI3, BrickPortType::INPUT));
-	addPort(new BrickPort(DI4, BrickPortType::INPUT));
+    addPort(new BrickPort(DI1, BrickPortType::INPUT));
+    addPort(new BrickPort(DI2, BrickPortType::INPUT));
+    addPort(new BrickPort(DI3, BrickPortType::INPUT));
+    addPort(new BrickPort(DI4, BrickPortType::INPUT));
 
-	addPort(new BrickPort(DO1, BrickPortType::OUTPUT));
-	addPort(new BrickPort(DO2, BrickPortType::OUTPUT));
-	addPort(new BrickPort(DO3, BrickPortType::OUTPUT));
-	addPort(new BrickPort(DO4, BrickPortType::OUTPUT));
+    addPort(new BrickPort(DO1, BrickPortType::OUTPUT));
+    addPort(new BrickPort(DO2, BrickPortType::OUTPUT));
+    addPort(new BrickPort(DO3, BrickPortType::OUTPUT));
+    addPort(new BrickPort(DO4, BrickPortType::OUTPUT));
 
-	reset();
+    reset();
 }
 
 bol::DioBrick::~DioBrick()
 {
-	reset();
+    reset();
 }
 
 void bol::DioBrick::sync(bool out, bool in)
 {
-	if(!shouldSync())
-	{
-		return;
-	}
+    if(!shouldSync())
+    {
+        return;
+    }
 
-	if(out)
-	{
-		unsigned char _pout = 0x00;
+    if(out)
+    {
+        unsigned char _pout = 0x00;
 
-		_pout |= (getPortByName(DO1)->getValue() << 0);
-		_pout |= (getPortByName(DO2)->getValue() << 1);
-		_pout |= (getPortByName(DO3)->getValue() << 2);
-		_pout |= (getPortByName(DO4)->getValue() << 3);
+        _pout |= (getPortByName(DO1)->getValue() << 0);
+        _pout |= (getPortByName(DO2)->getValue() << 1);
+        _pout |= (getPortByName(DO3)->getValue() << 2);
+        _pout |= (getPortByName(DO4)->getValue() << 3);
 
-		// only sync outputs when they changed
-		if(_pout != pout)
-		{
-			std::vector<unsigned char> msg1 = {CMD_SET_POUT, _pout};
-			bbus->write(address, msg1);
-			pout = _pout;
-		}
-	}
+        // only sync outputs when they changed
+        if(_pout != pout)
+        {
+            std::vector<unsigned char> msg1 = {CMD_SET_POUT, _pout};
+            bbus->write(address, msg1);
+            pout = _pout;
+        }
+    }
 
-	if(in)
-	{
-		// always sync inputs
-		std::vector<unsigned char> res = bbus->read(address, CMD_GET_PIN, 1);
+    if(in)
+    {
+        // always sync inputs
+        std::vector<unsigned char> res = bbus->read(address, CMD_GET_PIN, 1);
 
-		getPortByName(DI1)->setValue((res[0] >> 0) & 1);
-		getPortByName(DI2)->setValue((res[0] >> 1) & 1);
-		getPortByName(DI3)->setValue((res[0] >> 2) & 1);
-		getPortByName(DI4)->setValue((res[0] >> 3) & 1);
-	}
+        getPortByName(DI1)->setValue((res[0] >> 0) & 1);
+        getPortByName(DI2)->setValue((res[0] >> 1) & 1);
+        getPortByName(DI3)->setValue((res[0] >> 2) & 1);
+        getPortByName(DI4)->setValue((res[0] >> 3) & 1);
+    }
 }

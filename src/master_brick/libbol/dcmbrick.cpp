@@ -41,91 +41,91 @@ const char* bol::DcmBrick::SPEED_M2_CCW		= "SPEED_M2_CCW";
 bol::DcmBrick::DcmBrick(const GenericBrick &brick) : bol::GenericBrick(brick)
 {
 
-	dir = 0x00;
+    dir = 0x00;
 
-	speed_m1_cw 	= 0x00;
-	speed_m1_ccw	= 0x00;
-	speed_m2_cw		= 0x00;
-	speed_m2_ccw	= 0x00;
+    speed_m1_cw 	= 0x00;
+    speed_m1_ccw	= 0x00;
+    speed_m2_cw		= 0x00;
+    speed_m2_ccw	= 0x00;
 
-	addPort(new BrickPort(DIR_M1, BrickPortType::INPUT));
-	addPort(new BrickPort(DIR_M2, BrickPortType::INPUT));
+    addPort(new BrickPort(DIR_M1, BrickPortType::INPUT));
+    addPort(new BrickPort(DIR_M2, BrickPortType::INPUT));
 
-	addPort(new BrickPort(SPEED_M1_CW, BrickPortType::INPUT));
-	addPort(new BrickPort(SPEED_M1_CCW, BrickPortType::INPUT));
-	addPort(new BrickPort(SPEED_M2_CW, BrickPortType::INPUT));
-	addPort(new BrickPort(SPEED_M2_CCW, BrickPortType::INPUT));
+    addPort(new BrickPort(SPEED_M1_CW, BrickPortType::INPUT));
+    addPort(new BrickPort(SPEED_M1_CCW, BrickPortType::INPUT));
+    addPort(new BrickPort(SPEED_M2_CW, BrickPortType::INPUT));
+    addPort(new BrickPort(SPEED_M2_CCW, BrickPortType::INPUT));
 
-	reset();
+    reset();
 }
 
 bol::DcmBrick::~DcmBrick()
 {
-	reset();
+    reset();
 }
 
 void bol::DcmBrick::sync(bool out, bool in)
 {
-	if(!shouldSync())
-	{
-		return;
-	}
+    if(!shouldSync())
+    {
+        return;
+    }
 
-	if(out)
-	{
-		unsigned char _dir = 0x00;
+    if(out)
+    {
+        unsigned char _dir = 0x00;
 
-		unsigned char _speed_m1_cw 	= 0x00;
-		unsigned char _speed_m1_ccw = 0x00;
-		unsigned char _speed_m2_cw 	= 0x00;
-		unsigned char _speed_m2_ccw = 0x00;
+        unsigned char _speed_m1_cw 	= 0x00;
+        unsigned char _speed_m1_ccw = 0x00;
+        unsigned char _speed_m2_cw 	= 0x00;
+        unsigned char _speed_m2_ccw = 0x00;
 
-		_dir 			|= (getPortByName(DIR_M1)->getValue() << 2);
-		_dir 			|= (getPortByName(DIR_M2)->getValue());
+        _dir 			|= (getPortByName(DIR_M1)->getValue() << 2);
+        _dir 			|= (getPortByName(DIR_M2)->getValue());
 
-		_speed_m1_cw 	|= (getPortByName(SPEED_M1_CW)->getValue());
-		_speed_m1_ccw 	|= (getPortByName(SPEED_M1_CCW)->getValue());
-		_speed_m2_cw 	|= (getPortByName(SPEED_M2_CW)->getValue());
-		_speed_m2_ccw 	|= (getPortByName(SPEED_M2_CCW)->getValue());
+        _speed_m1_cw 	|= (getPortByName(SPEED_M1_CW)->getValue());
+        _speed_m1_ccw 	|= (getPortByName(SPEED_M1_CCW)->getValue());
+        _speed_m2_cw 	|= (getPortByName(SPEED_M2_CW)->getValue());
+        _speed_m2_ccw 	|= (getPortByName(SPEED_M2_CCW)->getValue());
 
-		// only sync dir when they changed
-		if(_dir != dir)
-		{
-			std::vector<unsigned char> msg1 = {CMD_SET_DIR, _dir};
-			bbus->write(address, msg1);
-			dir = _dir;
-		}
+        // only sync dir when they changed
+        if(_dir != dir)
+        {
+            std::vector<unsigned char> msg1 = {CMD_SET_DIR, _dir};
+            bbus->write(address, msg1);
+            dir = _dir;
+        }
 
-		// only sync speed when changed
-		if(_speed_m1_cw != speed_m1_cw)
-		{
-			std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m1_cw, 0b00001000};
-			bbus->write(address, msg1);
-			speed_m1_cw = _speed_m1_cw;
-		}
+        // only sync speed when changed
+        if(_speed_m1_cw != speed_m1_cw)
+        {
+            std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m1_cw, 0b00001000};
+            bbus->write(address, msg1);
+            speed_m1_cw = _speed_m1_cw;
+        }
 
-		// only sync speed when changed
-		if(_speed_m1_ccw != speed_m1_ccw)
-		{
-			std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m1_ccw, 0b00000100};
-			bbus->write(address, msg1);
-			speed_m1_ccw = _speed_m1_ccw;
-		}
+        // only sync speed when changed
+        if(_speed_m1_ccw != speed_m1_ccw)
+        {
+            std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m1_ccw, 0b00000100};
+            bbus->write(address, msg1);
+            speed_m1_ccw = _speed_m1_ccw;
+        }
 
-		// only sync speed when changed
-		if(_speed_m2_cw != speed_m2_cw)
-		{
-			std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m2_cw, 0b00000010};
-			bbus->write(address, msg1);
-			speed_m2_cw = _speed_m2_cw;
-		}
+        // only sync speed when changed
+        if(_speed_m2_cw != speed_m2_cw)
+        {
+            std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m2_cw, 0b00000010};
+            bbus->write(address, msg1);
+            speed_m2_cw = _speed_m2_cw;
+        }
 
-		// only sync speed when changed
-		if(_speed_m2_ccw != speed_m2_ccw)
-		{
-			std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m2_ccw, 0b00000001};
-			bbus->write(address, msg1);
-			speed_m2_ccw = _speed_m2_ccw;
-		}
-	}
+        // only sync speed when changed
+        if(_speed_m2_ccw != speed_m2_ccw)
+        {
+            std::vector<unsigned char> msg1 = {CMD_SET_SPEED, _speed_m2_ccw, 0b00000001};
+            bbus->write(address, msg1);
+            speed_m2_ccw = _speed_m2_ccw;
+        }
+    }
 }

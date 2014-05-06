@@ -28,36 +28,36 @@ class DcmBrick : public GenericBrick
 {
 private:
 
-	DcmBrick(const GenericBrick &brick);
+    DcmBrick(const GenericBrick &brick);
 
-	virtual ~DcmBrick();
+    virtual ~DcmBrick();
 
-	unsigned char dir;
+    unsigned char dir;
 
-	unsigned char speed_m1_cw;
-	unsigned char speed_m1_ccw;
-	unsigned char speed_m2_cw;
-	unsigned char speed_m2_ccw;
+    unsigned char speed_m1_cw;
+    unsigned char speed_m1_ccw;
+    unsigned char speed_m2_cw;
+    unsigned char speed_m2_ccw;
 
 public:
 
-	static const int CW;
-	static const int CCW;
-	static const int STOP;
+    static const int CW;
+    static const int CCW;
+    static const int STOP;
 
-	static const char* DIR_M1;
-	static const char* DIR_M2;
+    static const char* DIR_M1;
+    static const char* DIR_M2;
 
-	static const char* SPEED_M1_CW;
-	static const char* SPEED_M1_CCW;
-	static const char* SPEED_M2_CW;
-	static const char* SPEED_M2_CCW;
+    static const char* SPEED_M1_CW;
+    static const char* SPEED_M1_CCW;
+    static const char* SPEED_M2_CW;
+    static const char* SPEED_M2_CCW;
 
 protected:
 
-	void sync(bool out = true, bool in = true);
+    void sync(bool out = true, bool in = true);
 
-	friend class BrickBus;
+    friend class BrickBus;
 };
 
 }

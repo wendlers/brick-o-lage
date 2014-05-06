@@ -30,91 +30,91 @@
 namespace bol {
 
 class GenericBrick;
-enum class BrickType; 
+enum class BrickType;
 
 typedef std::map<int, GenericBrick *> BrickMap;
 
 class BrickBus
 {
 private:
-	
-	int address;
 
-	int fd; 
-	
-	BrickMap bmap;
+    int address;
 
-	boost::thread *syncThread;
+    int fd;
 
-	boost::mutex busMutex;
+    BrickMap bmap;
 
-	BrickBus(int busAddress = 0);
+    boost::thread *syncThread;
 
-	~BrickBus();
+    boost::mutex busMutex;
 
-	static BrickBus *busInstance;
+    BrickBus(int busAddress = 0);
+
+    ~BrickBus();
+
+    static BrickBus *busInstance;
 
     class SingletonWatch
     {
-    	public:
+    public:
 
-			~SingletonWatch()
-			{
-				delete BrickBus::busInstance;
-			}
-     };
+        ~SingletonWatch()
+        {
+            delete BrickBus::busInstance;
+        }
+    };
 
-     friend class SingletonWatch;
+    friend class SingletonWatch;
 
 public:
 
-	static void initialize(int busAddress = 0);
+    static void initialize(int busAddress = 0);
 
-	static void terminate();
+    static void terminate();
 
 
-	static BrickBus *getInstance();
+    static BrickBus *getInstance();
 
-	static std::string describe();
+    static std::string describe();
 
-	void reset();
+    void reset();
 
 protected:
 
-	void write(int slaveAddress, std::vector<unsigned char> data);
+    void write(int slaveAddress, std::vector<unsigned char> data);
 
-	std::vector<unsigned char> read(int slaveAddress, unsigned char reg, int expectedLength);
+    std::vector<unsigned char> read(int slaveAddress, unsigned char reg, int expectedLength);
 
-	std::vector<unsigned char> xfer(int slaveAddress, std::vector<unsigned char> data, int expectedLength);
+    std::vector<unsigned char> xfer(int slaveAddress, std::vector<unsigned char> data, int expectedLength);
 
-	std::vector<GenericBrick *> getBricks();
+    std::vector<GenericBrick *> getBricks();
 
-	GenericBrick *getBrickByAddress(int slaveAddress);
+    GenericBrick *getBrickByAddress(int slaveAddress);
 
-	GenericBrick *getBrickByAddress(int slaveAddress, BrickType type);
+    GenericBrick *getBrickByAddress(int slaveAddress, BrickType type);
 
-	GenericBrick *getBrickByName(const char *name);
+    GenericBrick *getBrickByName(const char *name);
 
 private:
 
-	void discover();
+    void discover();
 
-	void startSyncThread();
+    void startSyncThread();
 
-	void stopSyncThread();
+    void stopSyncThread();
 
-	void syncThreadFunction();
+    void syncThreadFunction();
 
-	void sync(bool out= true, bool in = true);
+    void sync(bool out= true, bool in = true);
 
-	void open(const char *device);
+    void open(const char *device);
 
-	void close();
+    void close();
 
-friend class Brick;
-friend class GenericBrick;
-friend class DioBrick;
-friend class DcmBrick;
+    friend class Brick;
+    friend class GenericBrick;
+    friend class DioBrick;
+    friend class DcmBrick;
 };
 
 }

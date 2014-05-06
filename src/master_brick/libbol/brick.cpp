@@ -39,181 +39,181 @@ const char* bol::Brick::DCM4 = "DCM4";
 
 bol::GenericBrick::GenericBrick(BrickBus *brickBus, int slaveAddress)
 {
-	bbus = brickBus;
-	address = slaveAddress;
+    bbus = brickBus;
+    address = slaveAddress;
 
-	priority = 3;
-	currentPriority = 0;
+    priority = 3;
+    currentPriority = 0;
 
-	fwVersion = -1;
-	type = BrickType::UNKNOWN;
+    fwVersion = -1;
+    type = BrickType::UNKNOWN;
 }
 
 bol::GenericBrick::~GenericBrick()
 {
-	BrickPortMap::iterator it; 
+    BrickPortMap::iterator it;
 
-	for(it = pmap.begin(); it != pmap.end(); ++it)
-	{
-		BrickPort *p = it->second;
-		delete p;
-	}
+    for(it = pmap.begin(); it != pmap.end(); ++it)
+    {
+        BrickPort *p = it->second;
+        delete p;
+    }
 }
 
 void bol::GenericBrick::addPort(BrickPort *port)
 {
-	pmap[port->getName()] = port;
+    pmap[port->getName()] = port;
 }
 
 bol::GenericBrick::GenericBrick(const bol::GenericBrick &brick)
 {
-	bbus 		= brick.bbus;
-	address 	= brick.address;
-	pmap		= brick.pmap;
+    bbus 		= brick.bbus;
+    address 	= brick.address;
+    pmap		= brick.pmap;
 
-	priority 	= brick.priority;
-	currentPriority	= 0;
+    priority 	= brick.priority;
+    currentPriority	= 0;
 
-	fwVersion = brick.fwVersion;
-	type = brick.type;
+    fwVersion = brick.fwVersion;
+    type = brick.type;
 }
 
 bol::BrickType bol::GenericBrick::getType()
 {
-	if(type != BrickType::UNKNOWN)
-	{
-		return type;
-	}
+    if(type != BrickType::UNKNOWN)
+    {
+        return type;
+    }
 
-	std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
+    std::vector<unsigned char> res = bbus->read(address, CMD_FW_TYPE, 1);
 
-	switch(res[0]) {
-		case 0x01:
-			type = BrickType::DIO;
-			break;
-		case 0x02:
-			type = BrickType::DCM;
-			break;
-		default:
-			type = BrickType::UNKNOWN;
-	}
+    switch(res[0]) {
+    case 0x01:
+        type = BrickType::DIO;
+        break;
+    case 0x02:
+        type = BrickType::DCM;
+        break;
+    default:
+        type = BrickType::UNKNOWN;
+    }
 
-	return type;
+    return type;
 }
 
-unsigned char bol::GenericBrick::getFirmwareVersion() 
+unsigned char bol::GenericBrick::getFirmwareVersion()
 {
-	if(fwVersion != -1)
-	{
-		return (unsigned char)fwVersion;
-	}
+    if(fwVersion != -1)
+    {
+        return (unsigned char)fwVersion;
+    }
 
-	std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
+    std::vector<unsigned char> res = bbus->read(address, CMD_FW_VERSION, 1);
 
-	fwVersion = (int)res[0];
+    fwVersion = (int)res[0];
 
-	return (unsigned char)fwVersion;
+    return (unsigned char)fwVersion;
 }
 
 void bol::GenericBrick::reset()
 {
-	std::vector<unsigned char> msg = {CMD_RESET};
-	bbus->write(address, msg);
-	usleep(5000);
+    std::vector<unsigned char> msg = {CMD_RESET};
+    bbus->write(address, msg);
+    usleep(5000);
 }
 
 bol::BrickPort *bol::GenericBrick::getPortByName(const char *name)
 {
-	if(pmap[name] == NULL)
-	{
-		BLOG_ERR("Invalid port name: %s", name);
-		throw BrickException("Invalid port name");
-	}
+    if(pmap[name] == NULL)
+    {
+        BLOG_ERR("Invalid port name: %s", name);
+        throw BrickException("Invalid port name");
+    }
 
-	return pmap[name];
+    return pmap[name];
 }
 
 bol::BrickPortMap *bol::GenericBrick::getPorts()
 {
-	return &pmap;
+    return &pmap;
 }
 
 void bol::GenericBrick::setPortValue(const char *name, int value)
 {
-	getPortByName(name)->setValue(value);
+    getPortByName(name)->setValue(value);
 }
 
 int bol::GenericBrick::getPortValue(const char *name)
 {
-	return getPortByName(name)->getValue();
+    return getPortByName(name)->getValue();
 }
 
 std::string bol::GenericBrick::describe()
 {
-	std::stringstream d;
+    std::stringstream d;
 
-	d << "{\"Brick\": " << std::endl; 
+    d << "{\"Brick\": " << std::endl;
 
-	d << "{\"address\"=" << address;
+    d << "{\"address\"=" << address;
 
-	d << ", \"type\"=";
+    d << ", \"type\"=";
 
-	BrickType type = getType();
+    BrickType type = getType();
 
-	if(type == BrickType::DIO)
-	{
-		d << "\"DIO\"";
-	}
-	else if(type == BrickType::DCM)
-	{
-		d << "\"DCM\"";
-	}
-	else if(type == BrickType::SER)
-	{
-		d << "\"SER\"";
-	}
-	else if(type == BrickType::SEN)
-	{
-		d << "\"SEN\"";
-	}
-	else
-	{
-		d << "\"UNKNOWN\"";
-	}
+    if(type == BrickType::DIO)
+    {
+        d << "\"DIO\"";
+    }
+    else if(type == BrickType::DCM)
+    {
+        d << "\"DCM\"";
+    }
+    else if(type == BrickType::SER)
+    {
+        d << "\"SER\"";
+    }
+    else if(type == BrickType::SEN)
+    {
+        d << "\"SEN\"";
+    }
+    else
+    {
+        d << "\"UNKNOWN\"";
+    }
 
-	d << ", \"fw-version\"=" << (int)getFirmwareVersion();
-	d << ", " << std::endl << "\"ports\"=[" << std::endl;
-	
-	BrickPortMap::iterator it; 
+    d << ", \"fw-version\"=" << (int)getFirmwareVersion();
+    d << ", " << std::endl << "\"ports\"=[" << std::endl;
 
-	for(it = pmap.begin(); it != pmap.end(); ++it)
-	{
-		BrickPort *p = it->second;
-		d << p->describe();
-		d << ", " << std::endl;
-	}
+    BrickPortMap::iterator it;
 
-	d << "]";
+    for(it = pmap.begin(); it != pmap.end(); ++it)
+    {
+        BrickPort *p = it->second;
+        d << p->describe();
+        d << ", " << std::endl;
+    }
 
-	d << "}}";
+    d << "]";
 
-	return d.str();
+    d << "}}";
+
+    return d.str();
 }
 
 void bol::GenericBrick::setSyncPriority(int syncPriority)
 {
-	priority 		= syncPriority; 
-	currentPriority = 0;
+    priority 		= syncPriority;
+    currentPriority = 0;
 }
 
 int bol::GenericBrick::getSyncPriority()
 {
-	return priority;
+    return priority;
 }
 
 bol::BrickPort &bol::GenericBrick::operator [](const char* name)
 {
-	return *getPortByName(name);
+    return *getPortByName(name);
 }
 
 void bol::GenericBrick::sync(bool out, bool in)
@@ -222,98 +222,98 @@ void bol::GenericBrick::sync(bool out, bool in)
 
 bool bol::GenericBrick::shouldSync()
 {
-	if(currentPriority == priority)
-	{
-		currentPriority = 0;
-		return true;
-	}
+    if(currentPriority == priority)
+    {
+        currentPriority = 0;
+        return true;
+    }
 
-	currentPriority++;
-	
-	return false;
+    currentPriority++;
+
+    return false;
 }
 
 bol::Brick::Brick(int slaveAddress)
 {
-	brick = BrickBus::getInstance()->getBrickByAddress(slaveAddress);
+    brick = BrickBus::getInstance()->getBrickByAddress(slaveAddress);
 }
 
 bol::Brick::Brick(int slaveAddress, bol::BrickType type)
 {
-	brick = BrickBus::getInstance()->getBrickByAddress(slaveAddress, type);
+    brick = BrickBus::getInstance()->getBrickByAddress(slaveAddress, type);
 }
 
 bol::Brick::Brick(const char *name)
 {
-	brick = BrickBus::getInstance()->getBrickByName(name);
+    brick = BrickBus::getInstance()->getBrickByName(name);
 }
 
 bol::BrickType bol::Brick::getType()
 {
-	return brick->getType();
+    return brick->getType();
 }
 
 unsigned char bol::Brick::getFirmwareVersion()
 {
-	return brick->getFirmwareVersion();
+    return brick->getFirmwareVersion();
 }
 
 void bol::Brick::reset()
 {
-	brick->reset();
+    brick->reset();
 }
 
 bol::BrickPort* bol::Brick::getPortByName(const char* name)
 {
-	return brick->getPortByName(name);
+    return brick->getPortByName(name);
 }
 
 bol::BrickPortMap* bol::Brick::getPorts()
 {
-	return brick->getPorts();
+    return brick->getPorts();
 }
 
 void bol::Brick::setPortValue(const char* name, int value)
 {
-	brick->setPortValue(name, value);
+    brick->setPortValue(name, value);
 }
 
 int bol::Brick::getPortValue(const char* name)
 {
-	return brick->getPortValue(name);
+    return brick->getPortValue(name);
 }
 
 void bol::Brick::setSyncPriority(int syncPriority)
 {
-	brick->setSyncPriority(syncPriority);
+    brick->setSyncPriority(syncPriority);
 }
 
 int bol::Brick::getSyncPriority()
 {
-	return brick->getSyncPriority();
+    return brick->getSyncPriority();
 }
 
 std::string bol::Brick::describe()
 {
-	return brick->describe();
+    return brick->describe();
 }
 
 bol::BrickPort& bol::Brick::operator [](const char* name)
 {
-	return *(brick->getPortByName(name));
+    return *(brick->getPortByName(name));
 }
 
 bol::BrickPort *bol::Brick::get_port(const char *brickName, const char *portName)
 {
-	return BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName);
+    return BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName);
 }
 
 void bol::Brick::set_port_value(const char* brickName, const char* portName, const int value)
 {
-	 BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->setValue(value);
+    BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->setValue(value);
 }
 
 int bol::Brick::get_port_value(const char* brickName, const char* portName)
 {
-	 return BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->getValue();
+    return BrickBus::getInstance()->getBrickByName(brickName)->getPortByName(portName)->getValue();
 }

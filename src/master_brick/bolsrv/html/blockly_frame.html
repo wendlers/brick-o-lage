@@ -32,21 +32,29 @@
     </script>
   </head>
   <body onload="init()">
-	  <xml id="toolbox" style="display: none">
-	    <block type="controls_if"></block>
-	    <block type="controls_repeat_ext"></block>
-	    <block type="logic_compare"></block>
-	    <block type="math_number"></block>
-	    <block type="math_arithmetic"></block>
-	    <block type="text"></block>
-	    <block type="text_print"></block>
-	    <block type="bol_dio_output"></block>
-	    <block type="bol_dio_input"></block>
-	    <block type="bol_dio_input_event"></block>
-	    <block type="bol_dcm_direction"></block>
-	    <block type="bol_dcm_speed"></block>
-	    <block type="bol_repeat_forever"></block>
-	    <block type="bol_sleep"></block>
- 	 </xml>
+       <xml id="toolbox" style="display: none">                      
+          <category name="Controls">                                       
+            <block type="controls_if"></block>                  
+            <block type="controls_repeat_ext"></block>
+            <block type="bol_repeat_forever"></block> 
+            <block type="bol_sleep"></block>          
+          </category>                                 
+          <category name="Numbers">                   
+            <block type="logic_compare"></block>      
+            <block type="math_number"></block>        
+            <block type="math_arithmetic"></block>    
+          </category>                                 
+          <category name="Text">                      
+            <block type="text"></block>               
+            <block type="text_print"></block>         
+          </category>                                 
+          <category name="Bricks">                     
+           <block type="bol_dio_output"></block>      
+            <block type="bol_dio_input"></block>      
+            <block type="bol_dio_input_event"></block>                             
+            <block type="bol_dcm_direction"></block>                               
+            <block type="bol_dcm_speed"></block>                    
+         </category>                         
+      </xml>
   </body>
 </html>

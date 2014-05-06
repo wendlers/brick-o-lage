@@ -133,10 +133,12 @@ void bol::BrickBus::write(int slaveAddress, std::vector<unsigned char> data)
     messages[1].len   = 1;
     messages[1].buf   = &buf;
 
-    packets.msgs  	= messages;
-    packets.nmsgs 	= 2;
+    packets.msgs  = messages;
+    packets.nmsgs = 2;
 
-    if(ioctl(fd, I2C_RDWR, &packets) < 0) {
+    if(ioctl(fd, I2C_RDWR, &packets) < 0)
+    {
+        BLOG_ERR("Unable to send data to address: %d", slaveAddress);
         throw BrickException("Unable to send data");
     }
 }
@@ -165,8 +167,10 @@ std::vector<unsigned char> bol::BrickBus::read(int slaveAddress, unsigned char r
     packets.msgs      = messages;
     packets.nmsgs     = 2;
 
-    if(ioctl(fd, I2C_RDWR, &packets) < 0) {
+    if(ioctl(fd, I2C_RDWR, &packets) < 0)
+    {
         delete[] buf;
+        BLOG_ERR("Unable to send data to address: %d", slaveAddress);
         throw BrickException("Unable to send data");
     }
 

@@ -1,7 +1,7 @@
 config wifi-device  radio0
 	option type     mac80211
 	option channel  11
-	option macaddr	c4:93:00:11:06:50
+#	option macaddr	c4:93:00:11:06:60
 	option hwmode	11ng
 	option htmode	HT20
 	list ht_capab	GF
@@ -18,3 +18,23 @@ config wifi-iface
 	option ssid     FBWELAN 
 	option encryption psk2
 	option key supersonic
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

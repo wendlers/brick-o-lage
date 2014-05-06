@@ -175,6 +175,8 @@ void cmd_set_speed(i2c_cmd_args *args)
 	unsigned char b = (args->args[1] & 0b00000100) >> 2;
 	unsigned char a = (args->args[1] & 0b00001000) >> 3;
 
+	act();
+
 	if(a)
 	{
 		pwm.dc1a = PWM_DCPERCENT * s;
@@ -209,6 +211,8 @@ void cmd_set_dir(i2c_cmd_args *args)
 
 	unsigned char aa = (args->args[0] & 0b00001100) >> 2;
 	unsigned char bb = (args->args[0] & 0b00000011);
+
+	act();
 
 	if(aa != 0)
 	{
@@ -286,7 +290,7 @@ void cmd_reset(i2c_cmd_args *args)
 	P1DIR |= 0b00111001; // outputs
 	P2DIR |= 0b00110011;
 
-	P2OUT &= 0b00100000; // only enable power-led
+	P2OUT &= 0b00100000; // only enable power/act-led
 
 	// stop PWM M1
 	pwm.dc1a_cur = 0;
@@ -304,8 +308,6 @@ void cmd_reset(i2c_cmd_args *args)
 
 	CCR0  = PWM_CCRD;
 	TACTL = TASSEL_2 + MC_2;                  // SMCLK, contmode
-
-	act();
 
 #ifdef SERIAL_DEBUG
 	cio_printf("%s\n\r", __func__);

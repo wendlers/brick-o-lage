@@ -19,6 +19,7 @@
 
 #include <boost/python.hpp>
 
+#include "log.hpp"
 #include "brick.hpp"
 #include "brickexception.hpp"
 #include "brickscript.hpp"
@@ -137,12 +138,7 @@ public:
 			}
 			catch(boost::python::error_already_set)
 			{
-				std::cout << std::endl;
-				std::cout << "**********************************" << std::endl;
-				std::cout << "** BOL callback interrupted       " << std::endl;
-				std::cout << "**********************************" << std::endl;
-				std::cout << std::endl;
-
+				BLOG_ERR("BOL callback interrupted");
 				PyErr_Print();
 			}
 		}
@@ -236,11 +232,7 @@ bol::BrickScript::~BrickScript()
 		execThread = NULL;
 	}
 
-	std::cout << std::endl;
-	std::cout << "**********************************" << std::endl;
-	std::cout << "** BOL scripting engine ended     " << std::endl;
-	std::cout << "**********************************" << std::endl;
-	std::cout << std::endl;
+	BLOG_INFO("BOL scripting engine ended");
 }
 
 void bol::BrickScript::run(std::string prog)
@@ -253,11 +245,7 @@ void bol::BrickScript::run(std::string prog)
 
 		if(!waitUntilStopped())
 		{
-			std::cout << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL unable to stop script      " << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << std::endl;
+			BLOG_WARNING("BOL unable to stop script");
 			return;
 		}
 	}
@@ -324,11 +312,7 @@ void bol::BrickScript::execThreadFunction()
 	boost::python::dict local_namespace;
 	boost::python::object result;
 
-	std::cout << std::endl;
-	std::cout << "**********************************" << std::endl;
-	std::cout << "** BOL scripting engine started   " << std::endl;
-	std::cout << "**********************************" << std::endl;
-	std::cout << std::endl;
+	BLOG_INFO("BOL scripting engine started");
 
 	while(!boost::this_thread::interruption_requested())
 	{
@@ -336,11 +320,7 @@ void bol::BrickScript::execThreadFunction()
 
 		try
 		{
-			std::cout << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL script execution started   " << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << std::endl;
+			BLOG_INFO("BOL script execution started");
 
 			local_namespace["__builtins__"] = main_namespace["__builtins__"];
 
@@ -349,31 +329,12 @@ void bol::BrickScript::execThreadFunction()
 
 			local_namespace.clear();
 
-			std::cout << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL script ended normally      " << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << std::endl;
+			BLOG_INFO("BOL script ended normally");
 		}
 		catch(boost::python::error_already_set)
 		{
-			std::cout << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL script interrupted         " << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << std::endl;
-
+			BLOG_INFO("BOL script interrupted");
 			PyErr_Print();
-		}
-		catch(BrickException &e)
-		{
-			std::cout << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << "** BOL script BrickException      " << std::endl;
-			std::cout << "**********************************" << std::endl;
-			std::cout << std::endl;
-
-			std::cerr << e.what() << std::endl;
 		}
 
 		BrickPortEventCallback::clearCallbacks();
@@ -385,7 +346,7 @@ void bol::BrickScript::execThreadFunction()
 		}
 		catch(...)
 		{
-			// ignore whatever happens here ...
+			BLOG_WARNING("Unable to reset bricks");
 		}
 
 		setPause(true);

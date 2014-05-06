@@ -37,6 +37,9 @@ $(EXECUTABLE): $(OBJECTS)
 .cpp.o:
 	STAGING_DIR=$(STAGING_DIR) $(CXX) $(CFLAGS) -c $< -o $@ 
 
+strip:
+	$(STRIP) $(EXECUTABLE) 
+
 clean:
 	@rm -f $(OBJECTS)
 	@rm -f $(EXECUTABLE)

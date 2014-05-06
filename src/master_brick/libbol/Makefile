@@ -13,6 +13,8 @@ CFLAGS += -I$(TARGET_DIR)/usr/include
 CFLAGS += -I$(TARGET_DIR)/usr/include/python2.7
 
 ARFLAGS  = rcs
+
+SOURCES += log.cpp
 SOURCES += brickbus.cpp
 SOURCES += brickport.cpp 
 SOURCES += brick.cpp 

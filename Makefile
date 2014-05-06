@@ -36,7 +36,7 @@ init-carambola-config:
 	@cp config/carambola/openwrt.conf carambola/.config
 	@make -C carambola oldconfig
 
-build-carambola:
+build-carambola: 
 	@make -C carambola
 
 clean-carambola: clean-carambola-test
@@ -94,3 +94,15 @@ clean-bolsrv:
 
 clean-bolcmd:
 	@make -C src/master_brick/bolcmd clean
+
+install-bol: build-bol
+	@mkdir -p carambola/files/.
+	@cp -r config/carambola/etc carambola/files/.	
+	@mkdir -p carambola/files/opt/bol/bin
+	@mkdir -p carambola/files/opt/bol/html/userdata
+	@make -C src/master_brick/bolsrv strip
+	@make -C src/master_brick/bolcmd strip
+	@cp src/master_brick/bolsrv/bolsrv carambola/files/opt/bol/bin/. 
+	@cp -r src/master_brick/bolsrv/html carambola/files/opt/bol/.
+	@cp src/master_brick/bolcmd/bolcmd carambola/files/opt/bol/bin/. 
+	@make -C carambola 

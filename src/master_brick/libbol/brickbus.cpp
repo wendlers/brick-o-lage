@@ -28,24 +28,17 @@
 #include <iostream>
 #include <sstream>
 
+#include "log.hpp"
 #include "brickexception.hpp"
 #include "brickbus.hpp"
 #include "brick.hpp"
 #include "diobrick.hpp"
 #include "dcmbrick.hpp"
 
-// #define TRACE	std::cout << __func__ << "::" << __LINE__ << std::endl;
-#define TRACE
-
-// #define DBG(...)	std::cout << __func__ << "::" << __VA_ARGS__ << std::endl;
-#define DBG(...)
-
 bol::BrickBus *bol::BrickBus::busInstance = NULL;
 
 bol::BrickBus::BrickBus(int busAddress)
 {
-	TRACE
-
 	address = busAddress;
 	fd = -1;
 	syncThread = NULL;
@@ -54,6 +47,8 @@ bol::BrickBus::BrickBus(int busAddress)
 
 	sprintf(device, "/dev/i2c-%d", address);
 
+	BLOG_INFO("Opening bus: %s", device);
+
 	open(device);
 	discover();
 	startSyncThread();
@@ -61,8 +56,6 @@ bol::BrickBus::BrickBus(int busAddress)
 
 bol::BrickBus::~BrickBus()
 {
-	TRACE
-
 	stopSyncThread();
 
 	BrickMap::iterator it; 
@@ -79,28 +72,22 @@ bol::BrickBus::~BrickBus()
 
 void bol::BrickBus::initialize(int busAddress)
 {
-	TRACE
-
 	static SingletonWatch watch;
 
 	delete busInstance;
 
 	busInstance = new BrickBus(busAddress);
 
-	DBG("Bus initialised");
+	BLOG_DEBUG("Bus initialised");
 }
 
 void bol::BrickBus::terminate()
 {
-	TRACE
-
 	delete busInstance;
 }
 
 void bol::BrickBus::reset()
 {
-	TRACE
-
 	BrickMap::iterator it;
 
 	for(it = bmap.begin(); it != bmap.end(); ++it)
@@ -109,7 +96,7 @@ void bol::BrickBus::reset()
 
 		if(b == NULL)
 		{
-			DBG("NULL brick in map!")
+			BLOG_WARNING("NULL brick in map!");
 			break;
 		}
 
@@ -119,8 +106,6 @@ void bol::BrickBus::reset()
 
 bol::BrickBus *bol::BrickBus::getInstance()
 {
-	TRACE
-
 	if(busInstance == NULL)
 	{
 		initialize();
@@ -131,8 +116,6 @@ bol::BrickBus *bol::BrickBus::getInstance()
 
 void bol::BrickBus::write(int slaveAddress, std::vector<unsigned char> data) 
 {
-	TRACE
-
 	boost::mutex::scoped_lock l(busMutex); 
 
 	unsigned char buf;
@@ -160,11 +143,9 @@ void bol::BrickBus::write(int slaveAddress, std::vector<unsigned char> data)
 
 std::vector<unsigned char> bol::BrickBus::read(int slaveAddress, unsigned char reg, int expectedLength)
 {
-	TRACE
-
 	boost::mutex::scoped_lock l(busMutex); 
 
-	DBG("Reading from address: " << slaveAddress)
+	BLOG_DEBUG("Reading from address: %d", slaveAddress);
 
 	unsigned char *buf = new unsigned char[expectedLength];
 
@@ -198,8 +179,6 @@ std::vector<unsigned char> bol::BrickBus::read(int slaveAddress, unsigned char r
 
 std::vector<unsigned char> bol::BrickBus::xfer(int slaveAddress, std::vector<unsigned char> data, int expectedLength)
 {
-	TRACE
-
 	boost::mutex::scoped_lock l(busMutex); 
 
 	unsigned char *buf = new unsigned char[expectedLength];
@@ -220,9 +199,11 @@ std::vector<unsigned char> bol::BrickBus::xfer(int slaveAddress, std::vector<uns
     packets.msgs      = messages;
     packets.nmsgs     = 2;
 
-    if(ioctl(fd, I2C_RDWR, &packets) < 0) {
+    if(ioctl(fd, I2C_RDWR, &packets) < 0)
+    {
 		delete[] buf;
-        throw BrickException("Unable to send data");
+		BLOG_ERR("Unable to send data to address: %d", slaveAddress);
+		throw BrickException("Unable to send data");
     }
 	
 	std::vector<unsigned char> res(buf, buf + expectedLength);
@@ -239,29 +220,27 @@ bol::GenericBrick *bol::BrickBus::getBrickByAddress(int slaveAddress)
 
 bol::GenericBrick *bol::BrickBus::getBrickByAddress(int slaveAddress, BrickType type)
 {
-	TRACE
-
 	if(bmap[slaveAddress] != NULL)
 	{
-		DBG("Brick already in map")
+		BLOG_DEBUG("Brick already in map");
 
 		GenericBrick *b = bmap[slaveAddress];
 
 		if(type != BrickType::ANY && b->getType() != type)
 		{
+			BLOG_ERR("Brick at address %d has not expected type: expected=%d, got=%d", slaveAddress, type, b->getType());
 	        throw BrickException("Brick has not expected type");
 		}
 
 		return b;
 	}
 
+	BLOG_ERR("Brick at address %d not found", slaveAddress);
 	throw BrickException("Brick for address not found");
 }
 
 bol::GenericBrick *bol::BrickBus::getBrickByName(const char* name)
 {
-	TRACE
-
 	std::string n(name);
 
 	int start = 0;
@@ -272,23 +251,24 @@ bol::GenericBrick *bol::BrickBus::getBrickByName(const char* name)
 	{
 		type = BrickType::DIO;
 		start = 0x48;
-		DBG("Brick type for name is DIO")
+		BLOG_DEBUG("Brick type for name %s is DIO", name);
 	}
 	else if(n.substr(0, 3) == "DCM")
 	{
 		type = BrickType::DCM;
 		start = 0x4C;
-		DBG("Brick type for name is DCM")
+		BLOG_DEBUG("Brick type for name %s is DCM", name);
 	}
 
 	if(start == 0)
 	{
+		BLOG_ERR("Invalid brick name: %s", name);
 		throw BrickException("Invalid brick name given");
 	}
 
 	int addr = atoi(n.substr(3).c_str()) + start - 1;
 
-	DBG("Brick address from name is: " << addr)
+	BLOG_DEBUG("Brick address from name %s is: %d", name, addr);
 
 	return getBrickByAddress(addr, type);
 }
@@ -305,7 +285,7 @@ std::vector<bol::GenericBrick*> bol::BrickBus::getBricks()
 
 		if(b == NULL)
 		{
-			DBG("NULL brick in map!")
+			BLOG_WARNING("NULL brick in map!");
 			break;
 		}
 
@@ -315,64 +295,43 @@ std::vector<bol::GenericBrick*> bol::BrickBus::getBricks()
 	return bricks;
 }
 
-#if 0
-bol::GenericBrick *bol::BrickBus::operator [](const char *name)
-{
-	TRACE
-
-	return getBrickByName(name);
-}
-
-bol::GenericBrick& bol::BrickBus::operator [](const char *name)
-{
-	TRACE
-
-	return *getBrickByName(name);
-}
-#endif
-
 void bol::BrickBus::discover()
 {
-	TRACE
-
 	for(int slaveAddress = 0x40; slaveAddress <= 0x4F; slaveAddress++)
 	{
-		// Brick *genericBrick = new Brick(this, slaveAddress);
 		GenericBrick genericBrick(this, slaveAddress);
 
 		try
 		{
 			if(genericBrick.getType() == BrickType::DIO)
 			{
-				DBG("Found DIO brick at address " << slaveAddress)
+				BLOG_DEBUG("Found DIO brick at address: %d ", slaveAddress);
 
 				bmap[slaveAddress] = (GenericBrick *)new DioBrick(genericBrick);
 			}
 			else if(genericBrick.getType() == BrickType::DCM)
 			{
-				DBG("Found DCM brick at address " << slaveAddress)
+				BLOG_DEBUG("Found DCM brick at address: %d ", slaveAddress);
 
 				bmap[slaveAddress] = (GenericBrick *)new DcmBrick(genericBrick);
 			}
 			else
 			{
-				DBG("Found UNKNOWN brick at address " << slaveAddress << ", ignored")
+				BLOG_DEBUG("Found UNKNOWN brick at address: %d (ignored)", slaveAddress);
 			}
 		}
 		catch(...)
 		{
-			DBG("Exception while discovering brick at address " << slaveAddress << ", ignored")
+			BLOG_INFO("Exception while trying to discover brick at address: %d (ignored)", slaveAddress);
 		}
-
-		// delete genericBrick;
 	}
 }
 
 void bol::BrickBus::open(const char *device)
 {
-	TRACE
-
-    if((fd = ::open(device, O_RDWR)) < 0) {
+    if((fd = ::open(device, O_RDWR)) < 0)
+    {
+    	BLOG_ERR("Unable to open i2c device: %d", device);
         throw BrickException("Unable to open i2c device");
     }
 }
@@ -380,18 +339,14 @@ void bol::BrickBus::open(const char *device)
 
 void bol::BrickBus::close()
 {
-	TRACE
-
-	if(fd > -1) {
+	if(fd > -1)
+	{
 		::close(fd);
 	}	
 }
 
 void bol::BrickBus::sync(bool out, bool in)
 {
-
-	TRACE
-
 	BrickMap::iterator it; 
 
 	for(it = bmap.begin(); it != bmap.end(); ++it)
@@ -400,7 +355,7 @@ void bol::BrickBus::sync(bool out, bool in)
 
 		if(b == NULL)
 		{
-			DBG("NULL brick in map!")
+			BLOG_WARNING("NULL brick in map!");
 			break;
 		}
 
@@ -410,8 +365,6 @@ void bol::BrickBus::sync(bool out, bool in)
 
 void bol::BrickBus::startSyncThread()
 {
-	TRACE
-
 	if(syncThread != NULL)
 	{
 		return;
@@ -422,8 +375,6 @@ void bol::BrickBus::startSyncThread()
 
 void bol::BrickBus::stopSyncThread()
 {
-	TRACE
-
 	if(syncThread != NULL)
 	{
 		syncThread->interrupt();
@@ -435,28 +386,26 @@ void bol::BrickBus::stopSyncThread()
 
 void bol::BrickBus::syncThreadFunction()
 {
-	TRACE
-
 	while(!boost::this_thread::interruption_requested())
 	{
-		TRACE
-
 		boost::this_thread::sleep_for(boost::chrono::milliseconds(25));
 
-		TRACE
-
-		sync();
-
-		TRACE
+		try
+		{
+			sync();
+		}
+		catch(BrickException &e)
+		{
+			BLOG_ERR("Exception while syncing bricks: %s", e.what());
+			usleep(5000);
+		}
 	}
 
-	DBG("Sync thread ended")
+	BLOG_DEBUG("Sync thread ended");
 }
 
 std::string bol::BrickBus::describe()
 {
-	TRACE
-
 	if(busInstance == NULL)
 	{
 		throw BrickException("Brick bus not initialized");

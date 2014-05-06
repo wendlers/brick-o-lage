@@ -19,6 +19,7 @@
 
 #include <sstream>
 
+#include "log.hpp"
 #include "brick.hpp"
 #include "brickexception.hpp"
 
@@ -125,6 +126,7 @@ bol::BrickPort *bol::GenericBrick::getPortByName(const char *name)
 {
 	if(pmap[name] == NULL)
 	{
+		BLOG_ERR("Invalid port name: %s", name);
 		throw BrickException("Invalid port name");
 	}
 

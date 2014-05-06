@@ -17,7 +17,8 @@ config interface 'loopback'
 #	option proto 'dhcp'
 
 config interface wwan
-	option proto 'static'
-	option ipaddr '172.16.100.26'
-	option netmask '255.255.255.0'
-	option gateway '172.16.100.1'
+	option proto 'dhcp'
+#	option proto 'static'
+#	option ipaddr '172.16.100.25'
+#	option netmask '255.255.255.0'
+#	option gateway '172.16.100.1'

@@ -60,6 +60,12 @@ style:
 	$(STYLER) $(STYLERFLAGS) $(SRC)
 	$(STYLER) $(STYLERFLAGS) $(HDR)
 
+flash:
+	$(MSPDEBUG) $(MSPDEBUG_IF) "prog $(BINARY).elf"
+
+gdbserver:
+	$(MSPDEBUG) $(MSPDEBUG_IF) gdb &
+
 clean:
 	@rm -f *.o
 	@rm -f *.d

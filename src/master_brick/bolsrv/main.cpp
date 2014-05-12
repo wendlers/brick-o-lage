@@ -100,7 +100,7 @@ int main(int argc, const char* argv[])
     }
 
     BLOG_INFO("Document root: %s", vm["root"].as<string>().c_str());
-    BLOG_INFO("Userdate location: %s", vm["userdata"].as<string>().c_str());
+    BLOG_INFO("User data location: %s", vm["userdata"].as<string>().c_str());
 
     bol::srv::BolController bc(vm["userdata"].as<string>());
 

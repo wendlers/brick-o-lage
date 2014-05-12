@@ -29,8 +29,8 @@
 namespace bol {
 
 enum class BrickPortType {
-    INPUT = 0,
-    OUTPUT = 1,
+    INPUT = 0,	/**< Input port */
+    OUTPUT = 1, /**< Output port */
 };
 
 

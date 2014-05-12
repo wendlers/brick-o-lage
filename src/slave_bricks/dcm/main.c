@@ -17,7 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <msp430.h>
+#include <msp430g2553.h>
+
 #include "cmd.h"
 
 void clock_init(void)

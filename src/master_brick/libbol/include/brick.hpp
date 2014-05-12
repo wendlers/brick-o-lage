@@ -29,19 +29,25 @@ namespace bol {
 
 enum class BrickType
 {
-    UNKNOWN = 0x00,
-    DIO 	= 0x01,
-    DCM 	= 0x02,
-    SER 	= 0x03,
-    SEN 	= 0x04,
-    ANY 	= 0xFF,
+    UNKNOWN = 0x00, /**< UNKNOWN brick */
+    DIO 	= 0x01, /**< Digital IO brick */
+    DCM 	= 0x02, /**< DC motor control brick */
+    SER 	= 0x03, /**< Servo control brick */
+    SEN 	= 0x04, /**< Sensor brick */
+    ANY 	= 0xFF, /**< Placeholder for any brick */
 };
 
+/**
+ * \brief Proxy to a specific brick.
+ *
+ * This is the main interface to the user when working with bricks. Each brick keeps an
+ * internal instance of the specific brick it proxies for.
+ */
 class Brick
 {
 private:
 
-    GenericBrick *brick;
+    GenericBrick *brick;	/**< Specific brick instance which is proxied by this Brick. */
 
 public:
 
@@ -55,10 +61,32 @@ public:
     static const char* DCM3;
     static const char* DCM4;
 
+    /**
+     * \brief Construct instance for brick at given I2C address.
+     *
+     * \warning throws bol::BrickException if brick at address is not found.
+     *
+     * \param slaveAddress	I2C 7-Bit slave address
+     */
     Brick(int slaveAddress);
 
+    /**
+     * \brief Construct instance for brick at given I2C address, also check if brick is of given type.
+     *
+     * \warning throws bol::BrickException if brick at address is not found or brick has not specified bol::BrickType.
+     *
+     * \param slaveAddress	I2C 7-Bit slave address
+     * \param type			bol::BrickType which the brick needs to match
+     */
     Brick(int slaveAddress, BrickType type);
 
+    /**
+     * \brief Construct instance for brick with a given name.
+     *
+     * \warning throws bol::BrickException if brick name could not be resolved to implied I2C slaveAddress and bol::BrickType.
+     *
+     * \param name 	name of brick
+     */
     Brick(const char *name);
 
     BrickType getType();

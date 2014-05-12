@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <msp430.h>
+#include <msp430g2553.h>
 #include <legacymsp430.h>
 
 /**
@@ -37,7 +37,7 @@
  * ACT_LED 	- P2.4
  */
 
-// if thie is defined, debug information will be printed on serial port
+// if this is defined, debug information will be printed on serial port
 #define SERIAL_DEBUG
 
 #ifdef SERIAL_DEBUG

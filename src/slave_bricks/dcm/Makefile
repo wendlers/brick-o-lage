@@ -3,6 +3,8 @@ TOPDIR=../../..
 include $(TOPDIR)/config/make/cross-msp430.mak
 include $(TOPDIR)/config/make/settings.mak
 
+# CFLAGS += -g
+
 ifneq ($(I2C_ADDR),)
 CFLAGS += -DI2C_ADDR=$(I2C_ADDR)
 else
@@ -24,5 +26,3 @@ TARGET   = brick-o-lage_dcm_$(I2C_ADDR)_$(BINARY)
 
 include $(TOPDIR)/config/make/rules-msp430.mak
 
-flash:
-	$(MSPDEBUG) $(MSPDEBUG_IF) "prog $(BINARY).elf"

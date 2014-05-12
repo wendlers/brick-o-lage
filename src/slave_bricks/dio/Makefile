@@ -24,5 +24,3 @@ TARGET   = brick-o-lage_dio_$(I2C_ADDR)_$(BINARY)
 
 include $(TOPDIR)/config/make/rules-msp430.mak
 
-flash:
-	$(MSPDEBUG) $(MSPDEBUG_IF) "prog $(BINARY).elf"

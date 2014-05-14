@@ -16,14 +16,16 @@ h2=h1;
 // no play between legos
 play=0;
 
+// cover(w1, l1, plate_h, (w1 - w2) / 2, w1, h1, l1, w2, l2, h2, bw, bl);
+
 // show_exploded("LEGO");
 // show_exploded("NONE");
-show_closed(1, "LEGO");
+// show_closed(1, "LEGO");
 // show_closed(1, "NONE");
 
 // print_case("LEGO");
 // print_case("NONE");
-// print_cover();
+print_cover();
 
 // translate([0, 0, plate_h / 2])
 //	pcb(w2, l2, 1);
@@ -172,24 +174,34 @@ module cover(w, l, h, t, w1, h1, l1, w2, l2, h2, bw, bl, withNoppen)
 					}
 
 					/* stand-offs to hold PCB in place */
+					translate([-w2 / 2 + 14, -l2 / 2 + 13.5, -5])
+						cylinder(r=3, h=5, $fn=100);	
 
-					translate([-w2 / 2 + 14, -l2 / 2 + 13.5, -plate_h - 0.2])
-						cylinder(r=3, h=3.2, $fn=100);	
-
-					translate([-w2 / 2 + 27, -l2 / 2 + 13.5, -plate_h - 0.2])
-						cylinder(r=3, h=3.2, $fn=100);	
+					translate([-w2 / 2 + 27, -l2 / 2 + 13.5, -5])
+						cylinder(r=3, h=5, $fn=100);	
 				}
 			}
 			case(w1, l1, h1, w2, l2, h2, bw, bl, "NONE", 1);
 		}
-		translate([0, -l2/2, h1-6.5-h/2])
+
+		translate([0, -l2/2 - 1, h1-6.5-h/2])
+		{
+			translate([0, 1, 0])
+				cube([7, 2, 2], center=true);
+
+			rotate([90, 0, 90])
+				cylinder(h=7, r=1, center=true, $fn=50);
+		}
+
+		mirror([0, 1, 0])
+			translate([0, -l2/2 - 1, h1-6.5-h/2])
+			{
+				translate([0, 1, 0])
+				cube([7, 2, 2], center=true);
+	
 				rotate([90, 0, 90])
 					cylinder(h=7, r=1, center=true, $fn=50);
-	
-		mirror([0, 1, 0])
-			translate([0, -l2/2, h1-6.5-h/2])
-					rotate([90, 0, 90])
-						cylinder(h=7, r=1, center=true, $fn=50);
+			}
 	}
 }
 

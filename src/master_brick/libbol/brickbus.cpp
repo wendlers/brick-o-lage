@@ -402,6 +402,22 @@ void bol::BrickBus::syncThreadFunction()
         {
             BLOG_ERR("Exception while syncing bricks: %s", e.what());
             usleep(5000);
+
+            // try to invalidate bricks so they get synced for sure on next sync (and eventually get back to previous state)
+            BrickMap::iterator it;
+
+            for(it = bmap.begin(); it != bmap.end(); ++it)
+            {
+                GenericBrick *b = it->second;
+
+                if(b == NULL)
+                {
+                    BLOG_WARNING("NULL brick in map!");
+                    break;
+                }
+
+                b->invalidate();
+            }
         }
     }
 

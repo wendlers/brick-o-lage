@@ -53,6 +53,8 @@ public:
     static const char* SPEED_M2_CW;
     static const char* SPEED_M2_CCW;
 
+    void invalidate();
+
 protected:
 
     void sync(bool out = true, bool in = true);

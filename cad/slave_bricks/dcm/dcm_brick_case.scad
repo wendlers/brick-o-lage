@@ -25,9 +25,9 @@ play=0;
 // show_closed(1, "LEGO_TECHNIC");
 // show_closed(1, "NONE");
 
-print_case("LEGO_TECHNIC");
+// print_case("LEGO_TECHNIC");
 // print_case("NONE");
-// print_cover();
+print_cover();
 
 // translate([0, 0, plate_h / 2])
 //	pcb(w2, l2, 1);
@@ -281,6 +281,7 @@ module pcb(w, l, withCutouts)
 
 		if( withCutouts > 0)
 		{
+/*
 			// led1 cutout
 			color("blue")	
 				translate([w / 2 - 4.5, - l / 2 + 3, 4])
@@ -292,7 +293,7 @@ module pcb(w, l, withCutouts)
 				translate([w / 2 - 9.5, - l / 2 + 3, 4])
 					rotate([90, 0, 0])		
 						cylinder(h=7, r=1.5, $fn=100);
-
+*/
 			if( withCutouts == 1 )
 			{
 				// prog+power-cable cutout

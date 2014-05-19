@@ -122,6 +122,10 @@ void bol::GenericBrick::reset()
     usleep(5000);
 }
 
+void bol::GenericBrick::invalidate()
+{
+}
+
 bol::BrickPort *bol::GenericBrick::getPortByName(const char *name)
 {
     if(pmap[name] == NULL)

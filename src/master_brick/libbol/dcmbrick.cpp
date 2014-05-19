@@ -64,6 +64,16 @@ bol::DcmBrick::~DcmBrick()
     reset();
 }
 
+void bol::DcmBrick::invalidate()
+{
+    dir = 0x00;
+
+    speed_m1_cw 	= 0x00;
+    speed_m1_ccw	= 0x00;
+    speed_m2_cw		= 0x00;
+    speed_m2_ccw	= 0x00;
+}
+
 void bol::DcmBrick::sync(bool out, bool in)
 {
     if(!shouldSync())

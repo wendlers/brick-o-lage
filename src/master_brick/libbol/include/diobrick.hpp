@@ -48,6 +48,8 @@ public:
     static const char* DO3;
     static const char* DO4;
 
+    void invalidate();
+
 protected:
 
     void sync(bool out = true, bool in = true);

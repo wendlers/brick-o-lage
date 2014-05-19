@@ -61,6 +61,12 @@ bol::DioBrick::~DioBrick()
     reset();
 }
 
+
+void bol::DioBrick::invalidate()
+{
+    pout = 0x00;
+}
+
 void bol::DioBrick::sync(bool out, bool in)
 {
     if(!shouldSync())

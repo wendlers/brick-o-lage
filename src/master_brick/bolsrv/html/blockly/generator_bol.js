@@ -83,3 +83,25 @@ Blockly.Python['bol_dcm_speed'] = function(block) {
  
   return code;
 };
+
+Blockly.Python['bol_http_post_req'] = function(block) {
+  var value_req_url = Blockly.Python.valueToCode(block, 'req_url', Blockly.Python.ORDER_ATOMIC);
+  var value_req_fields = Blockly.Python.valueToCode(block, 'req_fields', Blockly.Python.ORDER_ATOMIC);
+  var text_fields = block.getFieldValue('fields');
+  var text_url = block.getFieldValue('url');
+ 
+  var code = 'bol.http_post_req("' + text_url + '", "' + encodeURIComponent(text_fields) + '")\n';
+ 
+  return code;
+};
+
+Blockly.Python['bol_http_get_req'] = function(block) {
+  var value_req_url = Blockly.Python.valueToCode(block, 'req_url', Blockly.Python.ORDER_ATOMIC);
+  var value_req_fields = Blockly.Python.valueToCode(block, 'req_fields', Blockly.Python.ORDER_ATOMIC);
+  var text_fields = block.getFieldValue('fields');
+  var text_url = block.getFieldValue('url');
+ 
+  var code = 'bol.http_get_req("' + text_url + '", "' + encodeURIComponent(text_fields) + '")\n';
+ 
+  return code;
+};

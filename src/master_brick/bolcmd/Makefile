@@ -23,6 +23,7 @@ LIBS	+= -lpython2.7
 LIBS	+= -lutil
 LIBS	+= -ldl
 LIBS	+= -lz
+LIBS    += -lcurl
 
 SOURCES=main.cpp
 

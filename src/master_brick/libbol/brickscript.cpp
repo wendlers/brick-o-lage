@@ -18,6 +18,7 @@
  */
 
 #include <boost/python.hpp>
+#include <curl/curl.h>
 
 #include "log.hpp"
 #include "brick.hpp"
@@ -83,6 +84,8 @@ public:
     {
         BrickPort *p = bol::Brick::get_port(brickName, portName);
 
+        BLOG_INFO("addCallback: brickName=%s, portName=%s", brickName, portName);
+
         if(strcmp(bol::Brick::DIO1, brickName) == 0)
         {
             callbacks[callback] = PyCallbackHandle(p->connect(&BrickPortEventCallback::onUpdateDIO1), brickName, portName);
@@ -123,6 +126,8 @@ public:
 
     static void onUpdate(std::string brickName, BrickPort &p)
     {
+    	BLOG_INFO("onUpdate: brickName=%s, portName=%s, portValue=%d", brickName.c_str(), p.getName().c_str());
+
         PyObjBrickPortMap::iterator it;
 
         for(it = callbacks.begin(); it != callbacks.end(); ++it)
@@ -133,6 +138,7 @@ public:
             {
                 if(brickName == it->second.brick && p.getName() == it->second.port)
                 {
+                	BLOG_INFO("onUpdate: callBack=%x", (unsigned int)&callback);
                     callback(p.getValue());
                 }
             }
@@ -157,6 +163,81 @@ void msleep(int value)
         sleep(value);
     }
     usleep(usec);
+}
+
+size_t http_res_callback(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+   BLOG_INFO("HTTP res: %s", (char *)ptr);
+
+   return size * nmemb;
+}
+
+bool http_post_req(std::string url, std::string postFields)
+{
+	CURL *curl;
+	CURLcode res;
+
+	bool ret = false;
+
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields.c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_res_callback);
+
+		res = curl_easy_perform(curl);
+
+		if (res == CURLE_OK)
+		{
+			ret = true;
+		}
+		else
+		{
+			BLOG_ERR("%s", curl_easy_strerror(res));
+		}
+
+		curl_easy_cleanup(curl);
+	}
+
+	return ret;
+}
+
+bool http_get_req(std::string url, std::string getFields)
+{
+	CURL *curl;
+	CURLcode res;
+
+	bool ret = false;
+
+	std::string fullUrl = url;
+
+	fullUrl += getFields;
+
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		curl_easy_setopt(curl, CURLOPT_URL, fullUrl.c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_res_callback);
+
+		res = curl_easy_perform(curl);
+
+		if (res == CURLE_OK)
+		{
+			ret = true;
+		}
+		else
+		{
+			BLOG_ERR("%s", curl_easy_strerror(res));
+		}
+
+		curl_easy_cleanup(curl);
+	}
+
+	return ret;
 }
 
 }
@@ -198,6 +279,9 @@ BOOST_PYTHON_MODULE(bol)
     boost::python::def("usleep", &::usleep);
     boost::python::def("msleep", &bol::msleep);
     boost::python::def("addCallback", &bol::BrickPortEventCallback::addCallback);
+
+    boost::python::def("http_post_req", &bol::http_post_req);
+    boost::python::def("http_get_req", &bol::http_get_req);
 
     boost::python::to_python_converter<bol::BrickType, BrickType_to_python_str>();
 }

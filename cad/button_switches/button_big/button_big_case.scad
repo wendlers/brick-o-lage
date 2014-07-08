@@ -115,7 +115,7 @@ module cover()
 			pilz();
 			drill_wholes();
 			translate([0, 48/2, 18])
-				cylinder(r=5/2, h=6, $fn=100);
+				cylinder(r=4/2, h=6, $fn=100);
 		}
 		
 		difference()

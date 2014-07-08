@@ -128,3 +128,43 @@ Blockly.Blocks['bol_dcm_speed'] = {
     this.setTooltip('');
   }
 };
+
+Blockly.Blocks['bol_http_post_req'] = {
+  init: function() {
+    this.setHelpUrl('http://www.example.com/');
+    this.setColour(65);
+    this.appendDummyInput()
+        .appendField("http POST");
+    this.appendValueInput("req_url")
+        .setCheck("String")
+        .appendField("url")
+        .appendField(new Blockly.FieldTextInput("http://localhost"), "url");
+    this.appendValueInput("req_fields")
+        .setCheck("String")
+        .appendField("fields")
+        .appendField(new Blockly.FieldTextInput("a=1&b=2"), "fields");
+    this.setPreviousStatement(true, "null");
+    this.setNextStatement(true, "null");
+    this.setTooltip('');
+  }
+};
+
+Blockly.Blocks['bol_http_get_req'] = {
+  init: function() {
+    this.setHelpUrl('http://www.example.com/');
+    this.setColour(65);
+    this.appendDummyInput()
+        .appendField("http GET");
+    this.appendValueInput("req_url")
+        .setCheck("String")
+        .appendField("url")
+        .appendField(new Blockly.FieldTextInput("http://localhost?"), "url");
+    this.appendValueInput("req_fields")
+        .setCheck("String")
+        .appendField("fields")
+        .appendField(new Blockly.FieldTextInput("a=1&b=2"), "fields");
+    this.setPreviousStatement(true, "null");
+    this.setNextStatement(true, "null");
+    this.setTooltip('');
+  }
+};

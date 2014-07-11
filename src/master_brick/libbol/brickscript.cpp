@@ -126,7 +126,21 @@ public:
 
     static void onUpdate(std::string brickName, BrickPort &p)
     {
-    	BLOG_INFO("onUpdate: brickName=%s, portName=%s, portValue=%d", brickName.c_str(), p.getName().c_str());
+    	static std::string lastBrickName = "";
+    	static std::string lastPortName = "";
+    	static int lastPortValue = -1;
+
+		// only send same event once
+    	if(lastBrickName == brickName && lastPortName == p.getName() && lastPortValue == p.getValue())
+    	{
+    		return;
+    	}
+
+    	lastBrickName = brickName;
+    	lastPortName  = p.getName();
+    	lastPortValue = p.getValue();
+
+    	BLOG_INFO("onUpdate: brickName=%s, portName=%s, portValue=%d", brickName.c_str(), p.getName().c_str(), p.getValue());
 
         PyObjBrickPortMap::iterator it;
 
@@ -167,7 +181,7 @@ void msleep(int value)
 
 size_t http_res_callback(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-   BLOG_INFO("HTTP res: %s", (char *)ptr);
+   BLOG_INFO("HTTP res:\n %s", (char *)ptr);
 
    return size * nmemb;
 }

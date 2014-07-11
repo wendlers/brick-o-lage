@@ -12,9 +12,9 @@ include <../../lib/Lego_technic_beam.scad>;
 w=brick_w * 8;
 
 // print_case();
-// print_cover();
+print_cover();
 
-show_case_exploded();
+// show_case_exploded();
 // show_case_closed();
 
 // contact_switch(1);
